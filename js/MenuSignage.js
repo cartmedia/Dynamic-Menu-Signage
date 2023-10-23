@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var currentDayName = days[currentDate.getDay()];
 
   function fetchAndDisplayMeal(mealType, containerClass) {
-    fetch("https://github.com/Web-Jose/Menu-Updater/blob/e2b7fb8119077250cdae01e760c744c4619eafc8/Menu.json")
+    fetch("https://raw.githubusercontent.com/Web-Jose/Menu-Updater/main/Menu.json")
       .then((response) => response.json())
       .then((menu) => {
         let todayMenu = menu[currentDayName];
