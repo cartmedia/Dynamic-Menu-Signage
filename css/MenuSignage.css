@@ -25,7 +25,7 @@ header {
 .MenuTitle {
   font-family: "trailmade", script;
   font-weight: 400;
-  font-size: 6rem;
+  font-size: 3.5rem;
   color: #f7f7f7;
   padding: 1rem;
 }
@@ -41,7 +41,7 @@ header {
 .MenuFoodItem {
   flex-shrink: 1;
   font-family: "coolvetica", sans-serif;
-  font-size: 1.5rem;
+  font-size: 1rem;
   color: #f7f7f7;
 }
 
@@ -58,7 +58,7 @@ header {
 }
 
 .MenuMealType {
-  font-size: 2rem;
+  font-size: 1.5rem;
   margin-bottom: 10px;
   color: #f7f7f7;
   font-family: "coolvetica", sans-serif;
@@ -73,21 +73,21 @@ header {
   background-color: #b1102b;
   color: #ffffff;
   font-family: "futura-pt", sans-serif;
-  font-size: 2rem;
+  font-size: 1.4rem;
   text-align: center;
-  padding: 0.5rem 1rem 2rem 1rem;
+  padding: 0.5rem 0.5rem 2rem 0.5rem;
   position: absolute;
   right: 0;
-  bottom: 2.5rem;
+  bottom: 1.25rem;
 }
 
 footer {
   bottom: 0;
-  height: 2.5rem;
+  height: 1.25rem;
   background-color: #b1102b;
   color: #ffffff;
   font-family: "futura-pt", sans-serif;
-  font-size: 1.5rem;
+  font-size: 1rem;
   text-align: center;
   padding: 0.5rem 0;
 }
@@ -99,7 +99,6 @@ footer {
   /* border: dashed 5px #f7f7f7; */
   display: flex;
   flex-direction: column;
-  padding: 1rem;
 }
 
 .MenuContainer {
@@ -110,7 +109,7 @@ footer {
 .MenuSubContainer {
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: 1rem;
   width: 40%;
 }
 
@@ -147,7 +146,7 @@ i {
 }
 
 .MenuLogo img {
-  width: 15%;
+  width: 12%;
   margin-top: 0.5rem;
 }
 
