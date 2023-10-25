@@ -1,5 +1,5 @@
 body {
-  background-image: url("images/38.jpg");
+  background-image: url("images/38-Food.jpg");
   background-size: cover;
   display: flex;
   flex-direction: column;
@@ -78,7 +78,7 @@ header {
   padding: 1vh 1vh 1vh 1vh;
   position: absolute;
   right: 0;
-  bottom: 5vh;
+  bottom: 4.9vh;
 }
 
 footer {
