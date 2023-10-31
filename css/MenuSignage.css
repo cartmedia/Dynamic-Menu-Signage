@@ -81,6 +81,10 @@ header {
   bottom: 4.9vh;
 }
 
+.DailyMenuQR img {
+  width: 100%;
+}
+
 footer {
   bottom: 0;
   height: 3vh;
