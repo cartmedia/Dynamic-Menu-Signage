@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener("DOMContentLoaded", function () {
   const SLOTS = [".MenuBreakfast", ".MenuLunch", ".MenuDinner", ".MenuDessert"];
   const PRIMARY_SLOT = SLOTS[0];
-  const ROTATE_INTERVAL_MS = 12000; // adjust rotation speed here (12s)
+  const ROTATE_INTERVAL_MS = 6000; // faster rotation for visibility during testing (6s)
 
   // Strip technical prefixes from names (e.g., "A Cola" -> "Cola")
   function cleanName(name) {
@@ -122,16 +122,25 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       function computeVisibleCountFor(catIdx) {
+        // Prefer cached value if present
         if (visibleCountCache.has(catIdx)) return visibleCountCache.get(catIdx);
         const cat = categories[catIdx];
         if (!cat || !Array.isArray(cat.items) || cat.items.length === 0) {
           visibleCountCache.set(catIdx, 0);
           return 0;
         }
+        const slotEl = getSlotEl();
+        if (!slotEl) return 0;
+
+        // Ensure slot is measurable: force display and hide visually to avoid flicker
+        const prevDisplay = slotEl.style.display;
+        const prevVisibility = slotEl.style.visibility;
+        slotEl.style.display = "block";
+        slotEl.style.visibility = "hidden";
+
         let lo = 1;
         let hi = cat.items.length;
         let best = 1;
-        const slotEl = getSlotEl();
         // Binary search max items that fit
         while (lo <= hi) {
           const mid = Math.floor((lo + hi) / 2);
@@ -143,6 +152,11 @@ document.addEventListener("DOMContentLoaded", function () {
             hi = mid - 1;
           }
         }
+
+        // Restore styles
+        slotEl.style.visibility = prevVisibility || "";
+        slotEl.style.display = prevDisplay || "";
+
         visibleCountCache.set(catIdx, best);
         return best;
       }
@@ -175,8 +189,26 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
 
+      // Invalidate cache shortly after load to account for late-loading fonts
+      setTimeout(() => visibleCountCache.clear(), 2000);
+      window.addEventListener("resize", () => {
+        visibleCountCache.clear();
+        renderSingle(categoryIndex);
+      });
+
       // initial render
       renderSingle(categoryIndex);
+
+      // Re-measure once web fonts have finished loading (prevents underestimation)
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+          visibleCountCache.clear();
+          pagePartIndex = 0;
+          renderSingle(categoryIndex);
+        }).catch(() => {
+          /* no-op */
+        });
+      }
       setInterval(() => {
         const cat = categories[categoryIndex];
         const visibleCount = computeVisibleCountFor(categoryIndex);
