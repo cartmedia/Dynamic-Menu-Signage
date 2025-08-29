@@ -1,17 +1,16 @@
-# Menu Signage for Fresno State Student Housing 🍽️
+# Team Pinas Signage 🍽️
 
 ## Overview 📝
 
-This project was developed for Fresno State Student Housing to utilize digital signage for displaying weekly menus to residents, similar to a restaurant-style menu. By employing a combination of Figma, Adobe Illustrator, Adobe Photoshop, HTML, CSS, JavaScript, and JSON, this digital menu offers an inviting, visually appealing, and dynamically updated display of the current day's menu items on digital signage TVs located in housing buildings.
+This project provides a digital menu signage for Team Pinas. It uses HTML, CSS, and JavaScript to present an attractive, readable, and automatically updating menu board suitable for TV/monitor displays. Menu data is stored in JSON for easy maintenance.
 
 ## Features 🌟
 
-- **Dynamic Display**: Automatically updates with the current day's menu items.
-- **Real-Time Information**: Provides residents with the latest menu information.
-- **Responsive Design**: Ensures the menu looks good on any 16:9 screen.
-- **Visually Appealing**: Uses chalkboard textures and artisanal food graphics for an attractive display.
-- **Easy Maintenance**: Menu items and information are stored in JSON for easy updates.
-- **Accessibility**: Designed to be easy to read and intuitive for all residents.
+- **Dynamic Display**: Automatically cycles through categories and paginates long lists.
+- **Live Clock**: Two-line NL locale time and date, aligned with branding.
+- **Responsive Design**: Optimized for 16:9 screens with viewport units (vh).
+- **Readable From Distance**: Enlarged typography and increased letter-spacing; tabular numerals for prices.
+- **Easy Maintenance**: Menu items and prices are stored in JSON.
 
 ## Tools & Technologies 🛠️
 
@@ -21,32 +20,27 @@ This project was developed for Fresno State Student Housing to utilize digital s
 
 ## Project Structure 📁
 
-- `index.html`: The main HTML document.
-- `MenuSignage.js`: Contains the JavaScript code to dynamically load and display the menu items.
-- `MenuSignage.css`: Styles the menu to resemble a chalkboard.
-- `assets/`: Contains images used in the menu, including the background, logos, and QR code.
+- `index.html`: Main HTML document and includes the clock and layout containers.
+- `css/MenuSignage.css`: Styling for the layout, clock, and menu components.
+- `js/MenuSignage.js`: Logic for live clock, dynamic rendering, and rotation.
+- `assets/`: Logos, background, and JSON data (e.g., `products.json`).
 
 ## Challenges & Solutions 🧠
 
-- **Screen Glare**: Adjusted the color scheme and incorporated specific graphics to minimize glare and improve readability.
-- **Responsive Design**: Implemented `vh` and `vw` units for sizing and positioning to ensure the menu scales properly on different 16:9 screens.
+- **Screen Glare**: Dark theme with gold accents improves contrast and readability.
+- **Responsive Design**: Uses `vh` and flexible containers for consistent scaling on 16:9 displays.
 
 ## Updates & Iterations 🔄
 
-The project underwent several iterations, including a major redesign to adopt a chalkboard menu aesthetic and improvements in layout for better readability. A dynamic title and a QR code linking to the menu on the website were added for enhanced user interaction.
+Recent updates include a two-line NL locale clock, increased letter-spacing for distance legibility, and tabular numerals for price alignment.
 
 ## Viewing the Menu 📺
 
-The menu can be viewed on the digital signage TVs in Fresno State Student Housing buildings or online at:
-
-<https://fresnostatehousing.org/signage/wp-content/uploads/2023/10/Dynamic-Signage-Menu/Dynamic-Signage-Menu.html>
+Open `index.html` in a modern browser on the signage display. Configure data in `assets/products.json`.
 
 ## How to Contribute 🤝
 
-For those interested in contributing to the project or modifying it for their use, please refer to the project repository on GitHub:
-[https://github.com/Web-Jose/Dynamic-Menu-Signage](https://github.com/Web-Jose/Dynamic-Menu-Signage)
-
-Ensure to follow the project structure and coding standards as outlined in this guide for consistency and maintainability.
+Contributions and suggestions are welcome. Please open an issue or PR in this repository.
 
 ## Acknowledgements 🙏
 
