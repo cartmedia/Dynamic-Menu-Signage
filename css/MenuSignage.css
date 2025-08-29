@@ -163,8 +163,9 @@ hr {
 
 .ScrollingText span {
   display: inline-block;
-  animation: scrollText 0s linear infinite; /* duration will be set by JS */
+  animation: scrollText 30s linear infinite; /* default duration; JS will adjust */
   white-space: nowrap;
+  will-change: transform;
 }
 
 /* Separator crown icon in footer */
