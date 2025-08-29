@@ -99,8 +99,21 @@ document.addEventListener("DOMContentLoaded", function () {
     return out;
   }
 
-  fetch("assets/products.json")
-    .then((r) => r.json())
+  // Initialize CMS connector
+  const cmsConnector = window.CMSConnector ? new window.CMSConnector() : null;
+  
+  // Load products from CMS or fallback to local JSON
+  const loadProducts = async () => {
+    if (cmsConnector) {
+      return await cmsConnector.getProducts();
+    } else {
+      // Fallback to original method if CMS connector not available
+      const response = await fetch("assets/products.json");
+      return await response.json();
+    }
+  };
+
+  loadProducts()
     .then((data) => {
       const categories = Array.isArray(data.categories) ? data.categories : [];
       if (categories.length === 0) {
@@ -223,8 +236,44 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         renderSingle(categoryIndex);
       }, ROTATE_INTERVAL_MS);
+
+      // Set up automatic refresh for CMS updates
+      if (cmsConnector) {
+        const refreshData = async () => {
+          try {
+            console.log("Checking for CMS updates...");
+            const newData = await cmsConnector.getProducts();
+            
+            // Only update if data has actually changed
+            if (JSON.stringify(newData) !== JSON.stringify(data)) {
+              console.log("CMS data updated, refreshing display");
+              
+              // Clear cache and restart rotation
+              visibleCountCache.clear();
+              categoryIndex = 0;
+              pagePartIndex = 0;
+              
+              // Update categories with new data
+              const newCategories = Array.isArray(newData.categories) ? newData.categories : [];
+              categories.length = 0;
+              categories.push(...newCategories);
+              
+              // Re-render current category
+              renderSingle(categoryIndex);
+            }
+          } catch (error) {
+            console.warn("Failed to refresh CMS data:", error);
+          }
+        };
+
+        // Set up periodic refresh
+        setInterval(refreshData, cmsConnector.config.refresh.interval);
+
+        // Listen for reconnection events
+        window.addEventListener('cms-reconnected', refreshData);
+      }
     })
-    .catch((err) => console.error("Error loading products.json", err));
+    .catch((err) => console.error("Error loading products data", err));
 });
 
 document.addEventListener("DOMContentLoaded", function () {
