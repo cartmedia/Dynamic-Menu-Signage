@@ -1,6 +1,10 @@
 body {
-  background-image: url("images/38-FoodV3.jpg");
+  /* Team Pinas Background with dark overlay */
+  background: linear-gradient(rgba(16, 16, 16, 0.6), rgba(16, 16, 16, 0.6)),
+    url("images/background.jpg");
   background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -22,27 +26,56 @@ header {
   justify-content: center;
 }
 
+/* Live clock in header */
+.Clock {
+  position: absolute;
+  right: 2vh;
+  top: 1vh;
+  font-family: "futura-pt", sans-serif;
+  color: #c19d6c; /* Team Pinas Gold */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  letter-spacing: 0.02em;
+  text-align: right;
+}
+
+/* Two-line clock styling (time + date) */
+.ClockTime {
+  font-size: 6vh; /* large time */
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.04em; /* increase spacing for readability */
+}
+
+.ClockDate {
+  font-size: 2.4vh; /* smaller date */
+  color: #d1d5db; /* muted light gray */
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
 .MenuTitle {
   font-family: "trailmade", script;
   font-weight: 400;
   font-size: 8vh;
-  color: #f7f7f7;
+  color: #c19d6c; /* Team Pinas Gold */
   padding: 1vh;
+  display: none; /* Hide text behind logo */
 }
 
 .MenuItem {
   display: flex;
   align-items: center;
   gap: 1vh;
-  margin-bottom: 2.5vh;
+  margin-bottom: 2vh;
 }
 
 .MenuItemType,
 .MenuFoodItem {
   flex-shrink: 1;
   font-family: "coolvetica", sans-serif;
-  font-size: 2vh;
+  font-size: 3vh; /* bigger for readability */
   color: #f7f7f7;
+  letter-spacing: 0.08em; /* increased spacing for distance legibility */
 }
 
 .MenuItemType {
@@ -55,46 +88,30 @@ header {
   font-weight: 300;
   text-align: left;
   text-transform: capitalize;
+  font-variant-numeric: tabular-nums; /* improve number readability */
+  letter-spacing: 0.10em; /* extra spacing for prices */
 }
 
 .MenuMealType {
-  font-size: 2.5vh;
+  font-size: 3.8vh; /* larger category title */
   margin-bottom: 1.25vh;
-  color: #f7f7f7;
+  color: #c19d6c; /* Gold section title */
   font-family: "coolvetica", sans-serif;
   font-weight: 500;
 }
-
-.DailyMenuQR {
-  display: flex;
-  flex-direction: column;
-  gap: 1vh;
-  width: 9%;
-  background-color: #b1102b;
-  color: #ffffff;
-  font-family: "futura-pt", sans-serif;
-  font-size: 2.5vh;
-  text-align: center;
-  padding: 1vh 1vh 1vh 1vh;
-  position: absolute;
-  right: 0;
-  bottom: 4.9vh;
-}
-
-.DailyMenuQR img {
-  width: 100%;
-}
+/* DailyMenuQR removed */
 
 footer {
   bottom: 0;
-  height: 3vh;
-  background-color: #b1102b;
-  color: #ffffff;
+  height: 6vh;
+  background-color: #c19d6c; /* Team Pinas Gold */
+  color: #101010; /* Dark text for contrast on gold */
   font-family: "futura-pt", sans-serif;
-  font-size: 2vh;
+  font-size: 3vh;
   text-align: center;
-  padding: 1vh 0;
+  padding: 1.5vh 0;
   overflow: hidden;
+  border-top: none;
 }
 
 .MenuBreakfast,
@@ -107,18 +124,31 @@ footer {
 
 .MenuContainer {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: center; /* center single category */
 }
 
 .MenuSubContainer {
   display: flex;
   flex-direction: column;
   gap: 3vh;
-  width: 40%;
+  width: 70%; /* wider for single category */
+}
+
+/* Each category as its own card */
+.MenuBreakfast,
+.MenuLunch,
+.MenuDinner,
+.MenuDessert {
+  background-color: rgba(30, 30, 30, 0.85);
+  border: 1px solid hsla(0, 0%, 100%, 0.12);
+  border-radius: 0.5rem;
+  padding: 2vh;
+  max-height: 42vh; /* keep within viewport */
+  overflow: auto;  /* internal scroll for long lists */
 }
 
 hr {
-  border-top: 0.125vh solid #f7f7f7;
+  border-top: 0.125vh solid hsla(0, 0%, 100%, 0.12);
   width: 100%;
 }
 
@@ -137,8 +167,12 @@ hr {
   white-space: nowrap;
 }
 
-i {
-  margin: 0 2vh;
+/* Separator crown icon in footer */
+.ScrollingText img.sep {
+  height: 2.6vh; /* slightly smaller than text height */
+  vertical-align: middle;
+  margin: 0 1.5vh;
+  opacity: 0.9;
 }
 
 .MenuLogo {
@@ -146,18 +180,12 @@ i {
   position: absolute;
   top: 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* Center single logo */
 }
 
 .MenuLogo img {
-  width: 12%;
+  width: 22%;
   margin-top: 1vh;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
 }
 
-#Img1 {
-  margin-left: 4vh;
-}
-
-#Img2 {
-  margin-right: 4vh;
-}

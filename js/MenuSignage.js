@@ -15,68 +15,184 @@ document.addEventListener("DOMContentLoaded", function () {
   var currentDate = new Date();
   var currentDayName = days[currentDate.getDay()];
 
-  // Setting the text
-  dayTitleSpan.textContent = currentDayName + "'s Dining Hall Menu";
+  // Setting the text (Team Pinas branding)
+  dayTitleSpan.textContent = "Team Pinas — " + currentDayName + " Menu";
+
+  // Live clock (Dutch locale)
+  const clockEl = document.getElementById("Clock");
+  function updateClock() {
+    if (!clockEl) return;
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("nl-NL", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const dateStr = now.toLocaleDateString("nl-NL", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+    // Render two lines similar to the Next.js dashboard clock
+    clockEl.innerHTML = `
+      <div class="ClockTime" aria-label="Huidige tijd">${timeStr}</div>
+      <div class="ClockDate" aria-label="Huidige datum">${dateStr}</div>
+    `;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
 });
 
+// Products rendering and rotation
 document.addEventListener("DOMContentLoaded", function () {
-  // Get current day's name
-  var days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  var currentDate = new Date();
-  var currentDayName = days[currentDate.getDay()];
+  const SLOTS = [".MenuBreakfast", ".MenuLunch", ".MenuDinner", ".MenuDessert"];
+  const PRIMARY_SLOT = SLOTS[0];
+  const ROTATE_INTERVAL_MS = 12000; // adjust rotation speed here (12s)
 
-  function fetchAndDisplayMeal(mealType, containerClass) {
-    fetch("https://raw.githubusercontent.com/Web-Jose/Menu-Updater/main/Menu.json")
-      .then((response) => response.json())
-      .then((menu) => {
-        let todayMenu = menu[currentDayName];
-        let mealData = todayMenu[mealType];
-        let mealTypeContent =
-          '<div class="MenuMealType">' + mealType + "</div> <hr></hr>";
-        let itemsContainer = '<div class="MenuItemsContainer">';
+  // Strip technical prefixes from names (e.g., "A Cola" -> "Cola")
+  function cleanName(name) {
+    if (!name) return "";
+    const str = String(name).trim();
+    const parts = str.split(/\s+/);
+    if (parts.length > 1) {
+      const first = parts[0];
+      const removable = new Set(["A", "B", "AA", "Br", "W"]);
+      if (removable.has(first)) {
+        return parts.slice(1).join(" ");
+      }
+    }
+    return str;
+  }
 
-        for (let item in mealData) {
-          if (typeof mealData[item] === "object") {
-            for (let subitem in mealData[item]) {
-              itemsContainer += `
-                                <div class="MenuItem">
-                                    <div class="MenuItemType">${subitem}</div>
-                                    <div class="MenuFoodItem">${mealData[item][subitem]}</div>
-                                </div>
-                            `;
-            }
+  function euro(value) {
+    try {
+      const n = typeof value === "number" ? value : parseFloat(String(value).replace(",", "."));
+      if (Number.isFinite(n)) {
+        return "€" + n.toFixed(2).replace(".", ",");
+      }
+    } catch (_) {}
+    return String(value);
+  }
+
+  function renderCategory(slotSelector, category, itemsOverride) {
+    if (!category) {
+      document.querySelector(slotSelector).innerHTML = "";
+      return;
+    }
+    const titleHtml = `<div class="MenuMealType">${category.title}</div><hr />`;
+    let itemsHtml = '<div class="MenuItemsContainer">';
+    const list = Array.isArray(itemsOverride) ? itemsOverride : (category.items || []);
+    list.forEach((it) => {
+      itemsHtml += `
+        <div class="MenuItem">
+          <div class="MenuItemType">${cleanName(it.name)}</div>
+          <div class="MenuFoodItem">${euro(it.price)}</div>
+        </div>
+      `;
+    });
+    itemsHtml += "</div>";
+    document.querySelector(slotSelector).innerHTML = titleHtml + itemsHtml;
+  }
+
+  function chunk(array, size) {
+    const out = [];
+    for (let i = 0; i < array.length; i += size) out.push(array.slice(i, i + size));
+    return out;
+  }
+
+  fetch("assets/products.json")
+    .then((r) => r.json())
+    .then((data) => {
+      const categories = Array.isArray(data.categories) ? data.categories : [];
+      if (categories.length === 0) {
+        SLOTS.forEach((s) => (document.querySelector(s).innerHTML = ""));
+        return;
+      }
+      let categoryIndex = 0;
+      let pagePartIndex = 0; // which slice within current category
+
+      const visibleCountCache = new Map(); // categoryIndex -> count
+
+      function getSlotEl() {
+        return document.querySelector(PRIMARY_SLOT);
+      }
+
+      function fits(slotEl) {
+        // allow a tiny epsilon
+        return slotEl.scrollHeight <= slotEl.clientHeight + 1;
+      }
+
+      function computeVisibleCountFor(catIdx) {
+        if (visibleCountCache.has(catIdx)) return visibleCountCache.get(catIdx);
+        const cat = categories[catIdx];
+        if (!cat || !Array.isArray(cat.items) || cat.items.length === 0) {
+          visibleCountCache.set(catIdx, 0);
+          return 0;
+        }
+        let lo = 1;
+        let hi = cat.items.length;
+        let best = 1;
+        const slotEl = getSlotEl();
+        // Binary search max items that fit
+        while (lo <= hi) {
+          const mid = Math.floor((lo + hi) / 2);
+          renderCategory(PRIMARY_SLOT, cat, cat.items.slice(0, mid));
+          if (fits(slotEl)) {
+            best = mid;
+            lo = mid + 1;
           } else {
-            itemsContainer += `
-                            <div class="MenuItem">
-                                <div class="MenuItemType">${item}</div>
-                                <div class="MenuFoodItem">${mealData[item]}</div>
-                            </div>
-                        `;
+            hi = mid - 1;
+          }
+        }
+        visibleCountCache.set(catIdx, best);
+        return best;
+      }
+
+      function renderSingle(catIdx) {
+        const cat = categories[catIdx];
+        // render into first slot and show it
+        const visibleCount = computeVisibleCountFor(catIdx);
+        const items = cat.items || [];
+        const totalParts = Math.max(1, Math.ceil(items.length / Math.max(1, visibleCount)));
+        const start = Math.min(pagePartIndex, totalParts - 1) * Math.max(1, visibleCount);
+        const end = Math.min(items.length, start + Math.max(1, visibleCount));
+        renderCategory(PRIMARY_SLOT, cat, items.slice(start, end));
+        const primaryEl = document.querySelector(PRIMARY_SLOT);
+        if (primaryEl) primaryEl.style.display = "block";
+        // hide and clear other slots
+        for (let i = 1; i < SLOTS.length; i++) {
+          const el = document.querySelector(SLOTS[i]);
+          if (el) {
+            el.innerHTML = "";
+            el.style.display = "none";
           }
         }
 
-        itemsContainer += "</div>"; // Close the MenuItemsContainer
+        // Hide the secondary column to truly center the single category
+        const containers = document.querySelectorAll('.MenuSubContainer');
+        containers.forEach((container) => {
+          const hasPrimary = container.contains(primaryEl);
+          container.style.display = hasPrimary ? 'flex' : 'none';
+        });
+      }
 
-        let htmlContent = mealTypeContent + itemsContainer;
-        document.querySelector(containerClass).innerHTML = htmlContent;
-      })
-      .catch((error) => {
-        console.error(`Error fetching the ${mealType} menu:`, error);
-      });
-  }
-
-  fetchAndDisplayMeal("Breakfast", ".MenuBreakfast");
-  fetchAndDisplayMeal("Lunch", ".MenuLunch");
-  fetchAndDisplayMeal("Dinner", ".MenuDinner");
-  fetchAndDisplayMeal("Dessert", ".MenuDessert");
+      // initial render
+      renderSingle(categoryIndex);
+      setInterval(() => {
+        const cat = categories[categoryIndex];
+        const visibleCount = computeVisibleCountFor(categoryIndex);
+        const items = cat.items || [];
+        const totalParts = Math.max(1, Math.ceil(items.length / Math.max(1, visibleCount)));
+        // advance page within category first
+        if (pagePartIndex + 1 < totalParts) {
+          pagePartIndex += 1;
+        } else {
+          pagePartIndex = 0;
+          categoryIndex = (categoryIndex + 1) % categories.length;
+        }
+        renderSingle(categoryIndex);
+      }, ROTATE_INTERVAL_MS);
+    })
+    .catch((err) => console.error("Error loading products.json", err));
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -85,7 +201,8 @@ document.addEventListener("DOMContentLoaded", function () {
   function setAnimationDuration() {
     // Get half the width since the text is duplicated
     const spanWidth = scrollingTextSpan.offsetWidth / 2;
-    const duration = (spanWidth / 30) * 0.2; // 0.2s for every 100px of text width
+    // Increase duration to slow down the scroll (higher = slower)
+    const duration = (spanWidth / 30) * 0.6; // footer scroll speed
     scrollingTextSpan.style.animationDuration = duration + "s";
   }
 
