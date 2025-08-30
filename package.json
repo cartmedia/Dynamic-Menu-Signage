@@ -1,0 +1,28 @@
+{
+  "name": "team-pinas-signage",
+  "version": "1.0.0",
+  "description": "Digital signage system for Team Pinas with Neon CMS integration",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step required for static site'",
+    "deploy": "netlify deploy --prod"
+  },
+  "dependencies": {
+    "pg": "^8.11.0",
+    "jsonwebtoken": "^9.0.0",
+    "jwks-rsa": "^3.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "keywords": [
+    "signage",
+    "cms",
+    "neon",
+    "netlify",
+    "team-pinas"
+  ],
+  "author": "Team Pinas",
+  "license": "MIT"
+}

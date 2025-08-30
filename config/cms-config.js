@@ -2,19 +2,18 @@
 // Configure your Neon database API endpoint here
 
 const CMS_CONFIG = {
-  // CMS API Configuration
+  // CMS API Configuration for Netlify deployment
   api: {
-    // Replace with your Neon database API endpoint
-    baseUrl: process.env.CMS_API_URL || 'https://your-neon-db-api.com/api',
+    // Netlify Functions endpoints (will be /api/* in production)
+    baseUrl: window.location.origin + '/api',
     endpoints: {
       products: '/products',
-      categories: '/categories',
-      settings: '/signage-settings'
+      categories: '/categories', 
+      settings: '/settings'
     },
-    // API authentication (if required)
+    // API headers
     headers: {
-      'Content-Type': 'application/json',
-      // Add API key if needed: 'Authorization': 'Bearer your-api-key'
+      'Content-Type': 'application/json'
     }
   },
 
