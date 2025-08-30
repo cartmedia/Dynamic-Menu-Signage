@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Pinas Signage Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
     <script src="https://cdn.auth0.com/js/auth0/9.24.1/auth0.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
@@ -15,11 +23,21 @@
         // AUTH0_AUDIENCE=team-pinas-admin
     </script>
     <style>
+        /* Ensure proper dark mode transitions */
+        * {
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        
         .toast {
             transition: all 0.3s ease-in-out;
         }
         .modal {
             backdrop-filter: blur(4px);
+        }
+        
+        /* Dark mode root styles */
+        html.dark {
+            color-scheme: dark;
         }
     </style>
 </head>
@@ -378,8 +396,46 @@
     <script src="js/auth.js"></script>
     <script src="js/admin.js"></script>
     <script>
-        // Initialize login button after DOM is loaded
+        // Dark Mode Implementation
+        function initDarkMode() {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const darkModeIcon = darkModeToggle?.querySelector('i');
+            
+            if (!darkModeToggle || !darkModeIcon) return;
+            
+            // Load dark mode preference from localStorage
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+                darkModeIcon.className = 'fas fa-sun text-gray-700 dark:text-gray-300';
+            } else {
+                darkModeIcon.className = 'fas fa-moon text-gray-700 dark:text-gray-300';
+            }
+            
+            // Dark mode toggle event listener
+            darkModeToggle.addEventListener('click', () => {
+                const isDark = document.documentElement.classList.toggle('dark');
+                
+                // Update icon based on current theme
+                if (isDark) {
+                    darkModeIcon.className = 'fas fa-sun text-gray-700 dark:text-gray-300';
+                    localStorage.setItem('darkMode', 'true');
+                } else {
+                    darkModeIcon.className = 'fas fa-moon text-gray-700 dark:text-gray-300';
+                    localStorage.setItem('darkMode', 'false');
+                }
+                
+                console.log('Dark mode:', isDark ? 'enabled' : 'disabled');
+            });
+        }
+    </script>
+    <script>
+        // Initialize components after DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize dark mode
+            initDarkMode();
+            
+            // Initialize login button
             const loginBtn = document.getElementById('loginBtn');
             if (loginBtn) {
                 loginBtn.addEventListener('click', () => {

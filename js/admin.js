@@ -35,9 +35,6 @@ class AdminInterface {
   }
 
   setupEventListeners() {
-    // Dark mode toggle
-    this.setupDarkMode();
-    
     // Refresh button
     document.getElementById('refreshBtn').addEventListener('click', () => {
       this.loadData();
@@ -90,8 +87,8 @@ class AdminInterface {
       
       // Load categories and products from admin endpoints
       const [categoriesResponse, productsResponse] = await Promise.all([
-        this.apiCall('/api/admin-categories'),
-        this.apiCall('/api/admin-products')
+        this.apiCall('/.netlify/functions/admin-categories'),
+        this.apiCall('/.netlify/functions/admin-products')
       ]);
       
       if (!categoriesResponse.ok || !productsResponse.ok) {
@@ -206,6 +203,13 @@ class AdminInterface {
     
     selects.forEach(selectId => {
       const select = document.getElementById(selectId);
+      
+      // Skip if element doesn't exist (admin container not visible yet)
+      if (!select) {
+        console.log(`Select element ${selectId} not found, skipping...`);
+        return;
+      }
+      
       const currentValue = select.value;
       
       // Keep "All categories" option for filter
@@ -224,6 +228,8 @@ class AdminInterface {
       
       // Restore previous selection
       select.value = currentValue;
+      
+      console.log(`Updated ${selectId} with ${this.categories.length} categories`);
     });
   }
 
@@ -255,37 +261,37 @@ class AdminInterface {
     const tbody = document.getElementById('productsTable');
     
     if (filteredProducts.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Geen producten gevonden voor deze categorie</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">Geen producten gevonden voor deze categorie</td></tr>';
       return;
     }
 
     tbody.innerHTML = filteredProducts.map(product => {
       const price = parseFloat(product.price) || 0;
       return `
-        <tr class="hover:bg-gray-50">
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
           <td class="px-6 py-4 whitespace-nowrap">
-            <div class="text-sm font-medium text-gray-900">${product.name || 'Unnamed'}</div>
+            <div class="text-sm font-medium text-gray-900 dark:text-white">${product.name || 'Unnamed'}</div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
               ${product.category_name || 'No category'}
             </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
-            <div class="text-sm text-gray-900">€${price.toFixed(2).replace('.', ',')}</div>
+            <div class="text-sm text-gray-900 dark:text-white">€${price.toFixed(2).replace('.', ',')}</div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${product.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${product.active ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}">
               ${product.active ? 'Actief' : 'Inactief'}
             </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
             <button onclick="adminInterface.editProduct(${product.id})" 
-                    class="text-indigo-600 hover:text-indigo-900 mr-3">
+                    class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 mr-3">
               <i class="fas fa-edit"></i>
             </button>
             <button onclick="adminInterface.deleteProduct(${product.id})" 
-                    class="text-red-600 hover:text-red-900">
+                    class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
               <i class="fas fa-trash"></i>
             </button>
           </td>
@@ -339,7 +345,7 @@ class AdminInterface {
       let response;
       if (this.currentEditCategory) {
         // Update existing category
-        response = await this.apiCall(`/api/admin-categories?id=${this.currentEditCategory.id}`, {
+        response = await this.apiCall(`/.netlify/functions/admin-categories?id=${this.currentEditCategory.id}`, {
           method: 'PUT',
           body: JSON.stringify(categoryData)
         });
@@ -349,7 +355,7 @@ class AdminInterface {
         }
       } else {
         // Add new category
-        response = await this.apiCall('/api/admin-categories', {
+        response = await this.apiCall('/.netlify/functions/admin-categories', {
           method: 'POST',
           body: JSON.stringify(categoryData)
         });
@@ -387,7 +393,7 @@ class AdminInterface {
     }
 
     try {
-      const response = await this.apiCall(`/api/admin-categories?id=${categoryId}`, {
+      const response = await this.apiCall(`/.netlify/functions/admin-categories?id=${categoryId}`, {
         method: 'DELETE'
       });
 
@@ -459,7 +465,7 @@ class AdminInterface {
       let response;
       if (this.currentEditProduct) {
         // Update existing product
-        response = await this.apiCall(`/api/admin-products?id=${this.currentEditProduct.id}`, {
+        response = await this.apiCall(`/.netlify/functions/admin-products?id=${this.currentEditProduct.id}`, {
           method: 'PUT',
           body: JSON.stringify(productData)
         });
@@ -469,7 +475,7 @@ class AdminInterface {
         }
       } else {
         // Add new product
-        response = await this.apiCall('/api/admin-products', {
+        response = await this.apiCall('/.netlify/functions/admin-products', {
           method: 'POST',
           body: JSON.stringify(productData)
         });
@@ -507,7 +513,7 @@ class AdminInterface {
     }
 
     try {
-      const response = await this.apiCall(`/api/admin-products?id=${productId}`, {
+      const response = await this.apiCall(`/.netlify/functions/admin-products?id=${productId}`, {
         method: 'DELETE'
       });
 
@@ -561,36 +567,10 @@ class AdminInterface {
     }
   }
 
-  // Dark mode functionality
-  setupDarkMode() {
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const darkModeIcon = darkModeToggle.querySelector('i');
-    
-    // Load dark mode preference from localStorage
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      darkModeIcon.className = 'fas fa-sun text-gray-700 dark:text-gray-300';
-    }
-    
-    // Dark mode toggle event listener
-    darkModeToggle.addEventListener('click', () => {
-      const isDark = document.documentElement.classList.toggle('dark');
-      
-      // Update icon based on current theme
-      if (isDark) {
-        darkModeIcon.className = 'fas fa-sun text-gray-700 dark:text-gray-300';
-        localStorage.setItem('darkMode', 'true');
-      } else {
-        darkModeIcon.className = 'fas fa-moon text-gray-700 dark:text-gray-300';
-        localStorage.setItem('darkMode', 'false');
-      }
-    });
-  }
 }
 
 // Initialize admin interface when page loads
-let adminInterface;
+window.adminInterface = null;
 document.addEventListener('DOMContentLoaded', () => {
-  adminInterface = new AdminInterface();
+  window.adminInterface = new AdminInterface();
 });
