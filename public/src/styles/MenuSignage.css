@@ -126,32 +126,58 @@ body {
 
 .MenuItem {
   display: flex;
-  align-items: center;
-  gap: 1vh;
-  margin-bottom: 2vh;
-}
-
-.MenuItemType,
-.MenuFoodItem {
-  flex-shrink: 1;
-  font-family: "coolvetica", sans-serif;
-  font-size: 3vh; /* bigger for readability */
-  color: #f7f7f7;
-  letter-spacing: 0.08em; /* increased spacing for distance legibility */
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2.8vh; /* More space between items */
+  position: relative;
+  padding: 0.8vh 0 1.2vh 0; /* More generous padding, especially bottom for dotted line */
+  min-height: 4vh; /* Ensure consistent height */
 }
 
 .MenuItemType {
-  flex-basis: 37.5vh;
+  flex: 1;
+  font-family: "coolvetica", sans-serif;
+  font-size: 3vh;
+  color: #f7f7f7;
+  letter-spacing: 0.08em;
+  background-color: rgba(30, 30, 30, 0.85); /* Match slot background */
+  padding: 0.2vh 0; /* Remove horizontal padding */
+  z-index: 2;
+  position: relative;
 }
 
 .MenuFoodItem {
-  flex-basis: 100%;
-  flex-grow: 1;
+  flex-shrink: 0;
+  font-family: "coolvetica", sans-serif;
+  font-size: 3vh;
+  color: #f7f7f7;
   font-weight: 300;
-  text-align: left;
-  text-transform: capitalize;
-  font-variant-numeric: tabular-nums; /* improve number readability */
-  letter-spacing: 0.10em; /* extra spacing for prices */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.10em;
+  background-color: rgba(30, 30, 30, 0.85); /* Match slot background */
+  padding: 0.2vh 0; /* Remove horizontal padding */
+  z-index: 2;
+  position: relative;
+  text-align: right;
+}
+
+/* Restaurant-style dotted underline between product name and price */
+.MenuItem::after {
+  content: '';
+  position: absolute;
+  bottom: 0.8vh;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-image: repeating-linear-gradient(
+    to right,
+    #ffffff 0px,
+    #ffffff 4px,
+    transparent 4px,
+    transparent 10px
+  );
+  opacity: 0.8;
+  z-index: 1;
 }
 
 .CategoryTitle {
