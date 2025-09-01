@@ -117,7 +117,6 @@ class AdminInterface {
 
       this.renderCategories();
       this.renderProducts();
-      this.renderSettings();
       this.updateCategoryDropdowns();
       this.updateStats();
       
@@ -585,18 +584,20 @@ class AdminInterface {
       if (response.ok) {
         const data = await response.json();
         
-        // Populate settings form
-        document.getElementById('displayColumns').value = data.settings.display_columns || '2';
-        document.getElementById('rotationInterval').value = data.settings.rotation_interval || '6000';
-        document.getElementById('footerText').value = data.settings.footer_text || '';
-        document.getElementById('headerHeight').value = data.settings.header_height || '15';
-        document.getElementById('footerHeight').value = data.settings.footer_height || '8';
+        // Populate settings form - check if elements exist first
+        const displayColumns = document.getElementById('displayColumns');
+        const headerHeight = document.getElementById('headerHeight');
+        const footerHeight = document.getElementById('footerHeight');
+        
+        if (displayColumns) displayColumns.value = data.settings.display_columns || '2';
+        if (headerHeight) headerHeight.value = data.settings.header_height || '15';
+        if (footerHeight) footerHeight.value = data.settings.footer_height || '8';
         
         console.log('Settings loaded:', data.settings);
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
-      this.showToast('Failed to load settings', 'error');
+      // Don't show error toast for missing form elements
     }
   }
 
