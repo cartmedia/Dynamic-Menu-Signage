@@ -1,19 +1,31 @@
 [build]
-  publish = "."
-  functions = "netlify/functions"
+  publish = "public"
+  functions = "server/functions"
+  command = "scripts/build.sh"
 
 [build.environment]
   NODE_VERSION = "18"
 
 [dev]
   port = 8080
-  publish = "."
-  functions = "netlify/functions"
+  publish = "public"
+  functions = "server/functions"
 
 # Redirect API calls to Netlify Functions
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
+  status = 200
+
+# Redirect pretty admin paths to admin.html
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/"
+  to = "/admin.html"
   status = 200
 
 # Environment variables for production

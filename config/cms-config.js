@@ -4,8 +4,8 @@
 const CMS_CONFIG = {
   // CMS API Configuration for Netlify deployment
   api: {
-    // Netlify Functions endpoints (will be /api/* in production)
-    baseUrl: window.location.origin + '/api',
+    // Netlify Functions endpoints
+    baseUrl: window.location.origin + '/.netlify/functions',
     endpoints: {
       products: '/products',
       categories: '/categories', 
@@ -31,8 +31,8 @@ const CMS_CONFIG = {
   fallback: {
     // Use local JSON files if API is unavailable
     useLocalFallback: true,
-    localProductsPath: 'assets/products.json',
-    localMenuPath: 'assets/Menu.json'
+    localProductsPath: '/assets/data/products.json',
+    localMenuPath: '/assets/data/Menu.json'
   },
 
   // Cache settings

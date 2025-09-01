@@ -1,0 +1,310 @@
+body {
+  /* Team Pinas Background with dark overlay */
+  background: linear-gradient(rgba(16, 16, 16, 0.6), rgba(16, 16, 16, 0.6)),
+    url("/assets/images/background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  
+  /* CSS Custom Properties for dynamic heights and logo */
+  --header-height: 15vh;
+  --footer-height: 8vh;
+  --logo-size: 40vh; /* Make logo size configurable */
+  --body-height: calc(100vh - var(--header-height) - var(--footer-height));
+  
+  /* CSS Grid Layout for entire page */
+  display: grid;
+  grid-template-rows: var(--header-height) 1fr var(--footer-height);
+  grid-template-areas: 
+    "header"
+    "main"
+    "footer";
+  
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: clip !important;
+}
+
+/* PAGE GRID AREAS */
+.SignageHeader {
+  grid-area: header;
+  z-index: 10;
+}
+
+.SignageBody {
+  grid-area: main;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align to top to leave room for footer */
+  padding: 2vh; /* Add padding for breathing room */
+  z-index: 5;
+  position: relative; /* Ensure proper stacking context */
+  /* Add moderate margin-top for logo overlap */
+  margin-top: 12vh; /* Moderate margin for good logo/content separation */
+  /* Ensure we don't push footer off screen */
+  overflow: hidden;
+}
+
+.SignageFooter {
+  grid-area: footer;
+  z-index: 10;
+  /* Ensure footer is always visible */
+  position: relative;
+  min-height: var(--footer-height);
+}
+
+/* HEADER LAYOUT - CSS Grid */
+.SignageHeader {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: "title logo clock";
+  align-items: center;
+  padding: 1vh 2vh;
+}
+
+/* Header Logo - Grid Center */
+.HeaderLogo {
+  grid-area: logo;
+  justify-self: center;
+  z-index: 12;
+  /* Allow logo to extend beyond header if needed, but keep it centered */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* Ensure proper stacking context */
+}
+
+.HeaderLogo img {
+  width: var(--logo-size); /* Use configurable logo size */
+  height: auto;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+/* Header Title - Grid Left */
+.HeaderTitle {
+  grid-area: title;
+  justify-self: start;
+  font-family: "trailmade", script;
+  font-weight: 400;
+  font-size: 8vh;
+  color: #c19d6c; /* Team Pinas Gold */
+  display: none; /* Hide text behind logo */
+}
+
+/* Live clock - Grid Right */
+.HeaderClock {
+  grid-area: clock;
+  justify-self: end;
+  font-family: "futura-pt", sans-serif;
+  color: #c19d6c; /* Team Pinas Gold */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  letter-spacing: 0.02em;
+  text-align: right;
+  z-index: 11;
+}
+
+/* Two-line clock styling (time + date) */
+.ClockTime {
+  font-size: 6vh; /* large time */
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.04em; /* increase spacing for readability */
+}
+
+.ClockDate {
+  font-size: 2.4vh; /* smaller date */
+  color: #d1d5db; /* muted light gray */
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+/* Legacy support - now handled by HeaderTitle */
+.MenuTitle {
+  display: none;
+}
+
+.MenuItem {
+  display: flex;
+  align-items: center;
+  gap: 1vh;
+  margin-bottom: 2vh;
+}
+
+.MenuItemType,
+.MenuFoodItem {
+  flex-shrink: 1;
+  font-family: "coolvetica", sans-serif;
+  font-size: 3vh; /* bigger for readability */
+  color: #f7f7f7;
+  letter-spacing: 0.08em; /* increased spacing for distance legibility */
+}
+
+.MenuItemType {
+  flex-basis: 37.5vh;
+}
+
+.MenuFoodItem {
+  flex-basis: 100%;
+  flex-grow: 1;
+  font-weight: 300;
+  text-align: left;
+  text-transform: capitalize;
+  font-variant-numeric: tabular-nums; /* improve number readability */
+  letter-spacing: 0.10em; /* extra spacing for prices */
+}
+
+.CategoryTitle {
+  font-size: 3.8vh; /* larger category title */
+  margin-bottom: 1.25vh;
+  color: #c19d6c; /* Gold section title */
+  font-family: "coolvetica", sans-serif;
+  font-weight: 500;
+}
+/* DailyMenuQR removed */
+
+/* FOOTER LAYOUT */
+.SignageFooter {
+  background-color: #c19d6c; /* Team Pinas Gold */
+  color: #101010; /* Dark text for contrast on gold */
+  font-family: "futura-pt", sans-serif;
+  font-size: 3vh;
+  text-align: center;
+  padding: 1.5vh 0;
+  overflow: hidden;
+  border-top: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.CategorySlot {
+  display: flex;
+  flex-direction: column;
+}
+
+/* MAIN CONTENT LAYOUT - Dynamic Columns */
+.MenuContainer {
+  display: grid;
+  gap: 4vh; /* Good gap between columns */
+  width: 94%; /* Leave more room for centering */
+  max-width: none;
+  /* Leave room for footer - balanced approach */
+  max-height: calc(var(--body-height) - 8vh); /* More generous content space, minimal footer buffer */
+  height: auto; /* Let content determine height */
+  
+  /* Dynamic layout based on column setting */
+  grid-template-columns: repeat(var(--columns, 2), 1fr);
+  grid-template-rows: auto; /* Auto-size rows based on content */
+  
+  /* Center the grid content */
+  justify-content: center;
+  align-items: start; /* Align to top but keep equal heights */
+}
+
+/* When 1 column: single centered slot */
+.MenuContainer[data-columns="1"] {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+/* When 2 columns: 1 row, 2 columns with equal heights */  
+.MenuContainer[data-columns="2"] {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(auto, 1fr); /* Equal height columns */
+  align-items: stretch; /* Make items fill the row height */
+}
+
+/* MenuGrid is no longer needed - slots are direct children now */
+
+/* Fixed grid positions for 2-column layout (1 row, 2 columns) */
+.CategorySlot[data-slot="1"] { grid-area: 1 / 1; }
+.CategorySlot[data-slot="2"] { grid-area: 1 / 2; }
+/* Slots 0 and 3 not used in 2-column mode */
+.CategorySlot[data-slot="0"] { display: none; }
+.CategorySlot[data-slot="3"] { display: none; }
+
+/* 1-column layout overrides */
+.MenuContainer[data-columns="1"] {
+  /* Center the single column and adjust height */
+  justify-content: center;
+  align-items: center;
+}
+
+/* Show only slot 1 in 1-column mode, hide others */
+.MenuContainer[data-columns="1"] .CategorySlot[data-slot="0"] { display: none; }
+.MenuContainer[data-columns="1"] .CategorySlot[data-slot="1"] { 
+  display: flex;
+  grid-area: 1 / 1;
+  /* Content-fitted height for 1-column mode */
+  height: auto;
+  min-height: auto; /* Let content determine height */
+  max-height: 65vh; /* More generous height for single column */
+  align-self: start; /* No stretching in single column */
+}
+.MenuContainer[data-columns="1"] .CategorySlot[data-slot="2"] { display: none; }
+.MenuContainer[data-columns="1"] .CategorySlot[data-slot="3"] { display: none; }
+
+/* Each category as its own card - CONTENT FITTED */
+.CategorySlot {
+  background-color: rgba(30, 30, 30, 0.85);
+  border: 1px solid hsla(0, 0%, 100%, 0.12);
+  border-radius: 0.5rem;
+  padding: 2vh;
+  
+  /* CONTENT-FITTED HEIGHT - minimal empty space */
+  /* Let content determine height with reasonable bounds */
+  height: auto;
+  min-height: auto; /* No artificial minimum */
+  max-height: 55vh; /* More generous height for content */
+  
+  /* Handle overflow with hidden (no scrolling) */
+  overflow: hidden;
+  
+  /* Consistent display properties */
+  display: flex;
+  flex-direction: column;
+  
+  /* Ensure slots in same row have equal height */
+  align-self: stretch; /* Fill the grid area */
+}
+
+hr {
+  border-top: 0.125vh solid hsla(0, 0%, 100%, 0.12);
+  width: 100%;
+}
+
+@keyframes scrollText {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.ScrollingText span {
+  display: inline-block;
+  animation: scrollText 30s linear infinite; /* default duration; JS will adjust */
+  white-space: nowrap;
+  will-change: transform;
+}
+
+/* Separator crown icon in footer */
+.ScrollingText img.sep {
+  height: 2.6vh; /* slightly smaller than text height */
+  vertical-align: middle;
+  margin: 0 1.5vh;
+  opacity: 0.9;
+}
+
+/* Legacy MenuLogo - now handled by HeaderLogo */
+.MenuLogo {
+  display: none;
+}
+
+/* Legacy MenuLogo img - now handled by HeaderLogo img */
+.MenuLogo img {
+  display: none;
+}
+
