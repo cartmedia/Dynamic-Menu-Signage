@@ -228,9 +228,9 @@ class AuthManager {
     // Initialize admin interface if not already done
     if (!window.adminInterface) {
       window.adminInterface = new AdminInterface();
-      // Now initialize it after authentication is confirmed
-      window.adminInterface.init();
     }
+    // Always call init after authentication is confirmed
+    window.adminInterface.init();
   }
 
   showError(message) {
