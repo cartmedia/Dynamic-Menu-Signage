@@ -1,0 +1,265 @@
+body {
+  /* Team Pinas Background with dark overlay */
+  background: linear-gradient(rgba(16, 16, 16, 0.6), rgba(16, 16, 16, 0.6)),
+    url("/assets/images/background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  
+  /* CSS Grid Layout for entire page */
+  display: grid;
+  grid-template-rows: 15vh 1fr 8vh;
+  grid-template-areas: 
+    "header"
+    "main"
+    "footer";
+  
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: clip !important;
+}
+
+/* PAGE GRID AREAS */
+.SignageHeader {
+  grid-area: header;
+  z-index: 10;
+}
+
+.SignageBody {
+  grid-area: main;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 5;
+}
+
+.SignageFooter {
+  grid-area: footer;
+  z-index: 10;
+}
+
+/* HEADER LAYOUT - CSS Grid */
+.SignageHeader {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: "title logo clock";
+  align-items: center;
+  padding: 1vh 2vh;
+}
+
+/* Header Logo - Grid Center */
+.HeaderLogo {
+  grid-area: logo;
+  justify-self: center;
+  z-index: 12;
+}
+
+.HeaderLogo img {
+  width: 40vw;
+  height: auto;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+/* Header Title - Grid Left */
+.HeaderTitle {
+  grid-area: title;
+  justify-self: start;
+  font-family: "trailmade", script;
+  font-weight: 400;
+  font-size: 8vh;
+  color: #c19d6c; /* Team Pinas Gold */
+  display: none; /* Hide text behind logo */
+}
+
+/* Live clock - Grid Right */
+.HeaderClock {
+  grid-area: clock;
+  justify-self: end;
+  font-family: "futura-pt", sans-serif;
+  color: #c19d6c; /* Team Pinas Gold */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  letter-spacing: 0.02em;
+  text-align: right;
+  z-index: 11;
+}
+
+/* Two-line clock styling (time + date) */
+.ClockTime {
+  font-size: 6vh; /* large time */
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.04em; /* increase spacing for readability */
+}
+
+.ClockDate {
+  font-size: 2.4vh; /* smaller date */
+  color: #d1d5db; /* muted light gray */
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+/* Legacy support - now handled by HeaderTitle */
+.MenuTitle {
+  display: none;
+}
+
+.MenuItem {
+  display: flex;
+  align-items: center;
+  gap: 1vh;
+  margin-bottom: 2vh;
+}
+
+.MenuItemType,
+.MenuFoodItem {
+  flex-shrink: 1;
+  font-family: "coolvetica", sans-serif;
+  font-size: 3vh; /* bigger for readability */
+  color: #f7f7f7;
+  letter-spacing: 0.08em; /* increased spacing for distance legibility */
+}
+
+.MenuItemType {
+  flex-basis: 37.5vh;
+}
+
+.MenuFoodItem {
+  flex-basis: 100%;
+  flex-grow: 1;
+  font-weight: 300;
+  text-align: left;
+  text-transform: capitalize;
+  font-variant-numeric: tabular-nums; /* improve number readability */
+  letter-spacing: 0.10em; /* extra spacing for prices */
+}
+
+.CategoryTitle {
+  font-size: 3.8vh; /* larger category title */
+  margin-bottom: 1.25vh;
+  color: #c19d6c; /* Gold section title */
+  font-family: "coolvetica", sans-serif;
+  font-weight: 500;
+}
+/* DailyMenuQR removed */
+
+/* FOOTER LAYOUT */
+.SignageFooter {
+  background-color: #c19d6c; /* Team Pinas Gold */
+  color: #101010; /* Dark text for contrast on gold */
+  font-family: "futura-pt", sans-serif;
+  font-size: 3vh;
+  text-align: center;
+  padding: 1.5vh 0;
+  overflow: hidden;
+  border-top: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.CategorySlot {
+  display: flex;
+  flex-direction: column;
+}
+
+/* MAIN CONTENT LAYOUT - Dynamic Columns */
+.MenuContainer {
+  display: grid;
+  gap: 4vh;
+  width: 95%; /* Full width */
+  max-width: none; /* Remove width restriction */
+  height: fit-content;
+  
+  /* Dynamic layout based on column setting */
+  grid-template-columns: repeat(var(--columns, 2), 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+/* When 1 column: stack all slots vertically */
+.MenuContainer[data-columns="1"] {
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(4, auto);
+}
+
+/* When 2 columns: 2x2 grid */  
+.MenuContainer[data-columns="2"] {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.MenuGrid {
+  display: contents; /* Make grid items direct children of MenuContainer */
+}
+
+/* Fixed grid positions for 2-column layout */
+.CategorySlot[data-slot="0"] { grid-area: 1 / 1; }
+.CategorySlot[data-slot="1"] { grid-area: 1 / 2; }
+.CategorySlot[data-slot="2"] { grid-area: 2 / 1; }
+.CategorySlot[data-slot="3"] { grid-area: 2 / 2; }
+
+/* 1-column layout overrides */
+.MenuContainer[data-columns="1"] .CategorySlot[data-slot="0"] { grid-area: 1 / 1; }
+.MenuContainer[data-columns="1"] .CategorySlot[data-slot="1"] { grid-area: 2 / 1; }
+.MenuContainer[data-columns="1"] .CategorySlot[data-slot="2"] { grid-area: 3 / 1; }
+.MenuContainer[data-columns="1"] .CategorySlot[data-slot="3"] { grid-area: 4 / 1; }
+
+/* Each category as its own card - CONSISTENT SIZING */
+.CategorySlot {
+  background-color: rgba(30, 30, 30, 0.85);
+  border: 1px solid hsla(0, 0%, 100%, 0.12);
+  border-radius: 0.5rem;
+  padding: 2vh;
+  
+  /* FIXED HEIGHT for consistency */
+  height: 36vh;
+  min-height: 36vh;
+  max-height: 36vh;
+  
+  /* Handle overflow with hidden (no scrolling) */
+  overflow: hidden;
+  
+  /* Consistent display properties */
+  display: flex;
+  flex-direction: column;
+}
+
+hr {
+  border-top: 0.125vh solid hsla(0, 0%, 100%, 0.12);
+  width: 100%;
+}
+
+@keyframes scrollText {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.ScrollingText span {
+  display: inline-block;
+  animation: scrollText 30s linear infinite; /* default duration; JS will adjust */
+  white-space: nowrap;
+  will-change: transform;
+}
+
+/* Separator crown icon in footer */
+.ScrollingText img.sep {
+  height: 2.6vh; /* slightly smaller than text height */
+  vertical-align: middle;
+  margin: 0 1.5vh;
+  opacity: 0.9;
+}
+
+/* Legacy MenuLogo - now handled by HeaderLogo */
+.MenuLogo {
+  display: none;
+}
+
+/* Legacy MenuLogo img - now handled by HeaderLogo img */
+.MenuLogo img {
+  display: none;
+}
+

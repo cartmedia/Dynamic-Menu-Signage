@@ -1,0 +1,85 @@
+{
+  "categories": [
+    {
+      "title": "Snacks",
+      "items": [
+        { "name": "M&M", "price": 1.40 },
+        { "name": "Popcorn", "price": 1.65 },
+        { "name": "Chips Naturel", "price": 1.65 },
+        { "name": "Chips Paprika", "price": 1.65 },
+        { "name": "Snickers", "price": 1.65 },
+        { "name": "Mars", "price": 1.65 },
+        { "name": "Lion", "price": 1.65 },
+        { "name": "Twix", "price": 1.65 },
+        { "name": "KitKat", "price": 1.65 },
+        { "name": "Bueno", "price": 1.75 },
+        { "name": "pringles", "price": 2.00 },
+        { "name": "Mars 2x", "price": 2.65 },
+        { "name": "Snickers 2x", "price": 2.65 },
+        { "name": "Kitkat Chunky", "price": 2.15 },
+        { "name": "Doritos", "price": 2.15 }
+      ]
+    },
+    {
+      "title": "Frisdrank & Water",
+      "items": [
+        { "name": "A Cola", "price": 2.65 },
+        { "name": "A Cola Zero", "price": 2.65 },
+        { "name": "A Fanta", "price": 2.65 },
+        { "name": "A 7up", "price": 2.65 },
+        { "name": "A Spa blauw", "price": 2.65 },
+        { "name": "A Lipton Sparkle", "price": 2.45 },
+        { "name": "A Lipton Green", "price": 2.45 },
+        { "name": "A Fristi", "price": 2.65 },
+        { "name": "A Fernandes Blauw", "price": 2.45 },
+        { "name": "A Fernandes Geel", "price": 2.45 },
+        { "name": "A Fernandes Rood", "price": 2.45 },
+        { "name": "A Fernandes Groen", "price": 2.45 },
+        { "name": "A CapriSonne", "price": 1.50 },
+        { "name": "Aquarius klein", "price": 2.45 },
+        { "name": "Aquarius groot", "price": 3.45 }
+      ]
+    },
+    {
+      "title": "Koffie & Thee",
+      "items": [
+        { "name": "B Koffie", "price": 2.15 },
+        { "name": "B Thee", "price": 1.95 },
+        { "name": "B Cappuccino", "price": 2.65 },
+        { "name": "B Latte Macchiato", "price": 3.25 },
+        { "name": "B Espresso", "price": 2.15 },
+        { "name": "B Thee groot", "price": 2.65 },
+        { "name": "B Chocomelk met slagroom", "price": 3.65 },
+        { "name": "A Chocomelk", "price": 2.65 }
+      ]
+    },
+    {
+      "title": "Energy & Sportdrank",
+      "items": [
+        { "name": "A Redbull", "price": 3.65 },
+        { "name": "A Energie drink", "price": 2.15 },
+        { "name": "A Flow Energy", "price": 3.25 },
+        { "name": "AA groot", "price": 3.65 },
+        { "name": "AA klein", "price": 2.90 },
+        { "name": "A Carnitine", "price": 3.90 }
+      ]
+    },
+    {
+      "title": "Broodjes & Warm",
+      "items": [
+        { "name": "Vlam Tosti", "price": 3.90 },
+        { "name": "Broodje frikandel", "price": 2.65 },
+        { "name": "Bami soep", "price": 3.65 },
+        { "name": "Br Hema worst", "price": 3.75 }
+      ]
+    },
+    {
+      "title": "Shakes & Supplementen",
+      "items": [
+        { "name": "A Proteineshake", "price": 4.75 },
+        { "name": "A Eiwitshake", "price": 4.75 },
+        { "name": "W OMEGA 3", "price": 37.50 }
+      ]
+    }
+  ]
+}

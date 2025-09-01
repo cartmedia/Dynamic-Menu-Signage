@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Team Pinas Signage</title>
+    <link rel="stylesheet" href="/src/styles/MenuSignage.css" />
+    <link rel="stylesheet" href="https://use.typekit.net/iei5wpp.css" />
+    <!-- CMS Integration Scripts -->
+    <script src="/config/cms-config.js"></script>
+    <script src="/src/scripts/shared/smart-logo.js"></script>
+    <script src="/src/scripts/shared/logo-controls.js"></script>
+    <script src="/src/scripts/shared/cms-connector.js"></script>
+    <script src="/src/scripts/display/MenuSignage.js"></script>
+  </head>
+  <body>
+    <!-- HEADER: Logo en Clock -->
+    <header class="SignageHeader">
+      <div class="HeaderLogo">
+        <img id="Img1" src="assets/images/team-pinas-logo.svg" alt="Team Pinas Logo" />
+      </div>
+      <div class="HeaderTitle">
+        <span id="DayTitle"></span>
+      </div>
+      <div id="Clock" class="HeaderClock" aria-label="Huidige datum en tijd"></div>
+    </header>
+
+    <!-- MAIN BODY: Menu Content -->
+    <main class="SignageBody">
+      <div class="MenuContainer" data-columns="2">
+        <!-- Category Slot 0 (hidden by default) -->
+        <div class="CategorySlot" data-slot="0"></div>
+        
+        <!-- Category Slot 1 (left column) -->
+        <div class="CategorySlot" data-slot="1"></div>
+        
+        <!-- Category Slot 2 (right column) -->
+        <div class="CategorySlot" data-slot="2"></div>
+        
+        <!-- Category Slot 3 (hidden by default) -->
+        <div class="CategorySlot" data-slot="3"></div>
+      </div>
+    </main>
+
+    <!-- FOOTER: Scrolling Marketing Text -->
+    <footer class="SignageFooter">
+      <div class="ScrollingText">
+        <span>
+          Investeer in jezelf of in je kind – personal training vanaf €37,50 per les. Begin vandaag nog!
+          <img class="sep" src="assets/images/pinas_kroon.svg" alt="" role="presentation" aria-hidden="true" />
+          Interesse? Meld je bij de bar of stuur ons een mailtje.
+          <img class="sep" src="assets/images/pinas_kroon.svg" alt="" role="presentation" aria-hidden="true" />
+          Investeer in jezelf of in je kind – personal training vanaf €37,50 per les. Begin vandaag nog!
+          <img class="sep" src="assets/images/pinas_kroon.svg" alt="" role="presentation" aria-hidden="true" />
+          Interesse? Meld je bij de bar of stuur ons een mailtje.
+        </span>
+      </div>
+    </footer>
+  </body>
+</html>
