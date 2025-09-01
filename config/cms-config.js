@@ -40,7 +40,7 @@ const CMS_CONFIG = {
     // Cache API responses locally
     enabled: true,
     // Cache duration in milliseconds
-    duration: 300000, // 5 minutes
+    duration: 30000, // 30 seconds (was 5 minutes)
     storageKey: 'team-pinas-cms-cache'
   }
 };
