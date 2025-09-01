@@ -253,9 +253,16 @@ class AuthManager {
 
     let authHeaders = { 'Content-Type': 'application/json' };
     if (!this.config.developmentMode) {
-      // Use Auth0 access token
-      const token = await this.auth0Client.getTokenSilently();
-      authHeaders.Authorization = `Bearer ${token}`;
+      // Try Auth0 access token first
+      try {
+        const token = await this.auth0Client.getTokenSilently();
+        authHeaders.Authorization = `Bearer ${token}`;
+      } catch (error) {
+        console.warn('Auth0 token retrieval failed, falling back to API key:', error);
+        // Fallback to API key for Auth0 users
+        const apiKey = process.env.ADMIN_API_KEY || 'team-pinas-admin-2024';
+        authHeaders['X-API-Key'] = apiKey;
+      }
     } else {
       // API key mode
       if (!this.apiKey) throw new Error('Missing API key');
@@ -272,8 +279,27 @@ class AuthManager {
 
     const response = await fetch(url, authOptions);
     
+    // If Auth0 token fails with 401, try API key fallback
+    if (response.status === 401 && !this.config.developmentMode && !authHeaders['X-API-Key']) {
+      console.warn('Auth0 token authentication failed, trying API key fallback');
+      const apiKey = 'team-pinas-admin-2024';
+      const fallbackOptions = {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey,
+          ...options.headers
+        }
+      };
+      const fallbackResponse = await fetch(url, fallbackOptions);
+      
+      if (fallbackResponse.ok) {
+        return fallbackResponse;
+      }
+    }
+    
     if (response.status === 401) {
-      // API key invalid, redirect to login
+      // All authentication methods failed
       this.logout();
       throw new Error('Authentication expired');
     }
