@@ -7,8 +7,8 @@
 const https = require('https');
 
 // Configuration
-const AUTH0_DOMAIN = 'teampinas.eu.auth0.com';
-const CLIENT_ID = 'KZDTNO8UFMh2OajRSITIvmc0y09HQ6Zl';
+const AUTH0_DOMAIN = 'dev-5vpwwiap2walwv0r.eu.auth0.com';
+const CLIENT_ID = 'YwK0ooC7TkXXE904WUS5CUHMsnPx0fNP';
 const PRODUCTION_URL = 'https://tp-signage.netlify.app';
 
 // You need to create a Machine-to-Machine application in Auth0 dashboard
