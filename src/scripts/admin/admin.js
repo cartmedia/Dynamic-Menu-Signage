@@ -644,32 +644,31 @@ class AdminInterface {
 
   async saveDisplaySettings() {
     try {
-      const displayColumns = document.getElementById('displayColumns').value;
-      const rotationInterval = document.getElementById('rotationInterval').value;
-      const footerText = document.getElementById('footerText').value;
-      const headerHeight = document.getElementById('headerHeight').value;
-      const footerHeight = document.getElementById('footerHeight').value;
+      // Safely get form elements with fallback values
+      const displayColumns = document.getElementById('displayColumns')?.value || '2';
+      const headerHeight = document.getElementById('headerHeight')?.value || '15';
+      const footerHeight = document.getElementById('footerHeight')?.value || '8';
+
+      const settingsData = {
+        display_columns: parseInt(displayColumns),
+        header_height: parseInt(headerHeight),
+        footer_height: parseInt(footerHeight)
+      };
 
       const response = await this.apiCall('/.netlify/functions/settings', {
         method: 'PUT',
-        body: JSON.stringify({
-          display_columns: parseInt(displayColumns),
-          rotation_interval: parseInt(rotationInterval),
-          footer_text: footerText,
-          header_height: parseInt(headerHeight),
-          footer_height: parseInt(footerHeight)
-        })
+        body: JSON.stringify(settingsData)
       });
 
       if (response.ok) {
-        this.showToast('Settings saved successfully!');
-        console.log('Settings saved - display columns:', displayColumns);
+        this.showToast('Display instellingen opgeslagen!');
+        console.log('Display settings saved:', settingsData);
       } else {
         throw new Error('Failed to save settings');
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      this.showToast('Failed to save settings', 'error');
+      this.showToast('Fout bij opslaan instellingen: ' + error.message, 'error');
     }
   }
 
