@@ -8,7 +8,7 @@ body {
   
   /* CSS Custom Properties for dynamic heights and logo */
   --header-height: 15vh;
-  --footer-height: 8vh;
+  --footer-height: 7.8vh;
   --logo-size: 40vh; /* Make logo size configurable */
   --body-height: calc(100vh - var(--header-height) - var(--footer-height));
   
@@ -165,18 +165,17 @@ body {
 .MenuItem::after {
   content: '';
   position: absolute;
-  bottom: 0.8vh;
+  bottom: 0.6vh;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 1px;
   background-image: repeating-linear-gradient(
     to right,
-    #ffffff 0px,
-    #ffffff 4px,
-    transparent 4px,
-    transparent 10px
+    rgba(247, 247, 247, 0.4) 0px,
+    rgba(247, 247, 247, 0.4) 2px,
+    transparent 2px,
+    transparent 8px
   );
-  opacity: 0.8;
   z-index: 1;
 }
 
@@ -196,12 +195,13 @@ body {
   font-family: "futura-pt", sans-serif;
   font-size: 3vh;
   text-align: center;
-  padding: 1.5vh 0;
+  padding: 0; /* Remove padding to rely on flexbox centering */
   overflow: hidden;
   border-top: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1; /* Tight line height for better control */
 }
 
 .CategorySlot {
@@ -314,6 +314,8 @@ hr {
   animation: scrollText 30s linear infinite; /* default duration; JS will adjust */
   white-space: nowrap;
   will-change: transform;
+  vertical-align: middle; /* Ensure proper vertical alignment */
+  line-height: 1; /* Match footer line-height */
 }
 
 /* Separator crown icon in footer */
