@@ -9,12 +9,19 @@
     "deploy": "netlify deploy --prod"
   },
   "dependencies": {
-    "pg": "^8.11.0",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@tailwindcss/forms": "^0.5.10",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "jsonwebtoken": "^9.0.0",
-    "jwks-rsa": "^3.0.0"
+    "jwks-rsa": "^3.0.0",
+    "lucide-react": "^0.542.0",
+    "pg": "^8.11.0",
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
-    "netlify-cli": "^17.0.0"
+    "netlify-cli": "^17.0.0",
+    "tailwindcss": "^4.1.12"
   },
   "keywords": [
     "signage",
@@ -24,5 +31,17 @@
     "team-pinas"
   ],
   "author": "Team Pinas",
-  "license": "MIT"
+  "license": "MIT",
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cartmedia/team-pinas-signage.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/cartmedia/team-pinas-signage/issues"
+  },
+  "homepage": "https://github.com/cartmedia/team-pinas-signage#readme"
 }

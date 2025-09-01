@@ -11,7 +11,48 @@
         tailwind.config = {
             darkMode: 'class',
             theme: {
-                extend: {}
+                extend: {
+                    colors: {
+                        border: "hsl(214.3 31.8% 91.4%)",
+                        input: "hsl(214.3 31.8% 91.4%)",
+                        ring: "hsl(221.2 83.2% 53.3%)",
+                        background: "hsl(0 0% 100%)",
+                        foreground: "hsl(222.2 84% 4.9%)",
+                        primary: {
+                            DEFAULT: "hsl(221.2 83.2% 53.3%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(210 40% 96%)",
+                            foreground: "hsl(222.2 84% 4.9%)",
+                        },
+                        destructive: {
+                            DEFAULT: "hsl(0 84.2% 60.2%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(210 40% 96%)",
+                            foreground: "hsl(215.4 16.3% 46.9%)",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(210 40% 96%)",
+                            foreground: "hsl(222.2 84% 4.9%)",
+                        },
+                        popover: {
+                            DEFAULT: "hsl(0 0% 100%)",
+                            foreground: "hsl(222.2 84% 4.9%)",
+                        },
+                        card: {
+                            DEFAULT: "hsl(0 0% 100%)",
+                            foreground: "hsl(222.2 84% 4.9%)",
+                        }
+                    },
+                    borderRadius: {
+                        lg: "0.5rem",
+                        md: "calc(0.5rem - 2px)",
+                        sm: "calc(0.5rem - 4px)",
+                    }
+                }
             }
         }
     </script>
@@ -91,10 +132,8 @@
                                            placeholder="API Key">
                                 </div>
                                 <button id="loginBtn" type="submit" 
-                                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                                        <i class="fas fa-key text-blue-500 group-hover:text-blue-400"></i>
-                                    </span>
+                                        class="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-10 px-4 py-2">
+                                    <i class="fas fa-key mr-2 text-sm"></i>
                                     Inloggen
                                 </button>
                             </form>
@@ -134,15 +173,15 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <!-- Dark Mode Toggle -->
-                    <button id="darkModeToggle" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 p-2 rounded-lg transition-colors" title="Toggle Dark Mode">
-                        <i class="fas fa-moon text-gray-700 dark:text-gray-300"></i>
+                    <button id="darkModeToggle" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Toggle Dark Mode">
+                        <i class="fas fa-moon text-muted-foreground text-sm"></i>
                     </button>
-                    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
-                        <i class="fas fa-sync-alt mr-2"></i>
+                    <button id="refreshBtn" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">
+                        <i class="fas fa-sync-alt mr-2 text-sm"></i>
                         Refresh Data
                     </button>
-                    <a href="/" target="_blank" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center">
-                        <i class="fas fa-external-link-alt mr-2"></i>
+                    <a href="/" target="_blank" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-green-600 text-white shadow hover:bg-green-700 h-9 px-4 py-2">
+                        <i class="fas fa-external-link-alt mr-2 text-sm"></i>
                         View Signage
                     </a>
                     <!-- User Info -->
@@ -155,67 +194,59 @@
     </header>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Stats Cards -->
+        <!-- Stats Cards - Shadcn Style -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg transition-colors">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-layer-group text-blue-500 text-2xl"></i>
+            <div class="bg-card text-card-foreground border border-border rounded-lg shadow-sm transition-colors">
+                <div class="p-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-2 bg-primary/10 rounded-md">
+                            <i class="fas fa-layer-group text-primary text-xl"></i>
                         </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Categorieën</dt>
-                                <dd class="text-lg font-medium text-gray-900 dark:text-white" id="categoryCount">-</dd>
-                            </dl>
+                        <div class="flex-1 space-y-1">
+                            <p class="text-sm font-medium text-muted-foreground">Categorieën</p>
+                            <p class="text-2xl font-bold text-foreground" id="categoryCount">-</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg transition-colors">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-shopping-cart text-green-500 text-2xl"></i>
+            <div class="bg-card text-card-foreground border border-border rounded-lg shadow-sm transition-colors">
+                <div class="p-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-2 bg-green-100 dark:bg-green-900 rounded-md">
+                            <i class="fas fa-shopping-cart text-green-600 dark:text-green-400 text-xl"></i>
                         </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Producten</dt>
-                                <dd class="text-lg font-medium text-gray-900 dark:text-white" id="productCount">-</dd>
-                            </dl>
+                        <div class="flex-1 space-y-1">
+                            <p class="text-sm font-medium text-muted-foreground">Producten</p>
+                            <p class="text-2xl font-bold text-foreground" id="productCount">-</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg transition-colors">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-euro-sign text-yellow-500 text-2xl"></i>
+            <div class="bg-card text-card-foreground border border-border rounded-lg shadow-sm transition-colors">
+                <div class="p-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-md">
+                            <i class="fas fa-euro-sign text-yellow-600 dark:text-yellow-400 text-xl"></i>
                         </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Gem. Prijs</dt>
-                                <dd class="text-lg font-medium text-gray-900 dark:text-white" id="avgPrice">-</dd>
-                            </dl>
+                        <div class="flex-1 space-y-1">
+                            <p class="text-sm font-medium text-muted-foreground">Gem. Prijs</p>
+                            <p class="text-2xl font-bold text-foreground" id="avgPrice">-</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg transition-colors">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-clock text-purple-500 text-2xl"></i>
+            <div class="bg-card text-card-foreground border border-border rounded-lg shadow-sm transition-colors">
+                <div class="p-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-md">
+                            <i class="fas fa-clock text-purple-600 dark:text-purple-400 text-xl"></i>
                         </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Laatste Update</dt>
-                                <dd class="text-sm font-medium text-gray-900 dark:text-white" id="lastUpdate">-</dd>
-                            </dl>
+                        <div class="flex-1 space-y-1">
+                            <p class="text-sm font-medium text-muted-foreground">Laatste Update</p>
+                            <p class="text-sm font-semibold text-foreground" id="lastUpdate">-</p>
                         </div>
                     </div>
                 </div>
