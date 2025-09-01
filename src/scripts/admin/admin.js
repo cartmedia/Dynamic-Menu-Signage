@@ -188,9 +188,18 @@ class AdminInterface {
     tbody.innerHTML = this.products.map(product => {
       const price = parseFloat(product.price) || 0;
       return `
-        <tr class="hover:bg-gray-50">
+        <tr class="product-item hover:bg-gray-50 cursor-move" 
+            draggable="true" 
+            data-product-id="${product.id}" 
+            data-category-id="${product.category_id}"
+            data-order="${product.display_order}">
           <td class="px-6 py-4 whitespace-nowrap">
-            <div class="text-sm font-medium text-gray-900">${product.name || 'Unnamed'}</div>
+            <div class="flex items-center">
+              <div class="drag-handle-product mr-3 text-gray-400 hover:text-gray-600 cursor-grab">
+                <i class="fas fa-grip-vertical"></i>
+              </div>
+              <div class="text-sm font-medium text-gray-900">${product.name || 'Unnamed'}</div>
+            </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
@@ -218,6 +227,9 @@ class AdminInterface {
         </tr>
       `;
     }).join('');
+    
+    // Add drag and drop listeners for products
+    this.initializeProductDragAndDrop();
   }
 
   updateCategoryDropdowns() {
@@ -290,9 +302,18 @@ class AdminInterface {
     tbody.innerHTML = filteredProducts.map(product => {
       const price = parseFloat(product.price) || 0;
       return `
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+        <tr class="product-item hover:bg-gray-50 dark:hover:bg-gray-700 cursor-move" 
+            draggable="true" 
+            data-product-id="${product.id}" 
+            data-category-id="${product.category_id}"
+            data-order="${product.display_order}">
           <td class="px-6 py-4 whitespace-nowrap">
-            <div class="text-sm font-medium text-gray-900 dark:text-white">${product.name || 'Unnamed'}</div>
+            <div class="flex items-center">
+              <div class="drag-handle-product mr-3 text-gray-400 hover:text-gray-600 cursor-grab">
+                <i class="fas fa-grip-vertical"></i>
+              </div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">${product.name || 'Unnamed'}</div>
+            </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
@@ -320,6 +341,9 @@ class AdminInterface {
         </tr>
       `;
     }).join('');
+    
+    // Re-initialize drag and drop for filtered products
+    this.initializeProductDragAndDrop();
   }
 
   // Category Modal Functions
@@ -676,6 +700,54 @@ class AdminInterface {
   }
 
   /**
+   * Initialize drag and drop functionality for products
+   */
+  initializeProductDragAndDrop() {
+    const productItems = document.querySelectorAll('.product-item');
+    
+    productItems.forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+          productId: e.target.dataset.productId,
+          categoryId: e.target.dataset.categoryId
+        }));
+        e.target.style.opacity = '0.5';
+      });
+      
+      item.addEventListener('dragend', (e) => {
+        e.target.style.opacity = '1';
+      });
+      
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.add('bg-blue-50', 'border-blue-300');
+      });
+      
+      item.addEventListener('dragleave', (e) => {
+        e.currentTarget.classList.remove('bg-blue-50', 'border-blue-300');
+      });
+      
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('bg-blue-50', 'border-blue-300');
+        
+        const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+        const targetProductId = e.currentTarget.dataset.productId;
+        const targetCategoryId = e.currentTarget.dataset.categoryId;
+        
+        if (dragData.productId !== targetProductId) {
+          // Only allow reordering within the same category
+          if (dragData.categoryId === targetCategoryId) {
+            this.reorderProducts(dragData.productId, targetProductId);
+          } else {
+            this.showToast('Producten kunnen alleen binnen dezelfde categorie worden gesorteerd', 'error');
+          }
+        }
+      });
+    });
+  }
+
+  /**
    * Initialize drag and drop functionality for categories
    */
   initializeDragAndDrop() {
@@ -758,6 +830,61 @@ class AdminInterface {
     } catch (error) {
       console.error('Error reordering categories:', error);
       this.showToast('Fout bij wijzigen volgorde: ' + error.message, 'error');
+      // Reload to restore original order
+      await this.loadData();
+    }
+  }
+
+  /**
+   * Reorder products after drag and drop within the same category
+   */
+  async reorderProducts(draggedId, targetId) {
+    try {
+      // Find the products
+      const draggedProduct = this.products.find(p => p.id == draggedId);
+      const targetProduct = this.products.find(p => p.id == targetId);
+      
+      if (!draggedProduct || !targetProduct) return;
+      
+      // Swap display orders
+      const tempOrder = draggedProduct.display_order;
+      draggedProduct.display_order = targetProduct.display_order;
+      targetProduct.display_order = tempOrder;
+      
+      // Update both products in database
+      await Promise.all([
+        this.apiCall(`/.netlify/functions/admin-products?id=${draggedId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: draggedProduct.name,
+            category_id: draggedProduct.category_id,
+            price: draggedProduct.price,
+            description: draggedProduct.description,
+            display_order: draggedProduct.display_order,
+            active: draggedProduct.active
+          })
+        }),
+        this.apiCall(`/.netlify/functions/admin-products?id=${targetId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: targetProduct.name,
+            category_id: targetProduct.category_id,
+            price: targetProduct.price,
+            description: targetProduct.description,
+            display_order: targetProduct.display_order,
+            active: targetProduct.active
+          })
+        })
+      ]);
+      
+      // Reload data and invalidate cache
+      await this.loadData();
+      this.invalidateFrontendCache();
+      this.showToast('Product volgorde bijgewerkt', 'success');
+      
+    } catch (error) {
+      console.error('Error reordering products:', error);
+      this.showToast('Fout bij wijzigen product volgorde: ' + error.message, 'error');
       // Reload to restore original order
       await this.loadData();
     }
