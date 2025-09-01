@@ -225,9 +225,19 @@ class CMSConnector {
           localStorage.removeItem(key);
         }
       });
+      console.log('Cache cleared successfully');
     } catch (e) {
       console.warn('Failed to clear localStorage:', e);
     }
+  }
+
+  /**
+   * Invalidate cache and force refresh from server
+   */
+  async invalidateAndRefresh() {
+    this.clearCache();
+    // Force fresh data load
+    return await this.getProducts();
   }
 
   /**

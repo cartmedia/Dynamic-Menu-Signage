@@ -138,18 +138,26 @@ class AdminInterface {
       return;
     }
 
-    container.innerHTML = this.categories.map(category => {
+    container.innerHTML = this.categories.map((category, index) => {
       const productCount = category.product_count || 0;
       return `
-        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-          <div class="flex-1">
-            <div class="flex items-center">
-              <span class="font-medium text-gray-900">${category.name || 'Unnamed'}</span>
-              <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${category.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                ${category.active ? 'Actief' : 'Inactief'}
-              </span>
+        <div class="category-item flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-move" 
+             draggable="true" 
+             data-category-id="${category.id}" 
+             data-order="${category.display_order}">
+          <div class="flex items-center flex-1">
+            <div class="drag-handle mr-3 text-gray-400 hover:text-gray-600 cursor-grab">
+              <i class="fas fa-grip-vertical"></i>
             </div>
-            <p class="text-sm text-gray-500">${productCount} producten</p>
+            <div class="flex-1">
+              <div class="flex items-center">
+                <span class="font-medium text-gray-900">${category.name || 'Unnamed'}</span>
+                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${category.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                  ${category.active ? 'Actief' : 'Inactief'}
+                </span>
+              </div>
+              <p class="text-sm text-gray-500">${productCount} producten</p>
+            </div>
           </div>
           <div class="flex space-x-2">
             <button onclick="adminInterface.editCategory(${category.id})" 
@@ -164,6 +172,9 @@ class AdminInterface {
         </div>
       `;
     }).join('');
+    
+    // Add drag and drop listeners
+    this.initializeDragAndDrop();
   }
 
   renderProducts() {
@@ -384,6 +395,9 @@ class AdminInterface {
       // Reload data to reflect changes
       await this.loadData();
       this.closeCategoryModal();
+      
+      // Invalidate frontend cache so changes appear immediately on signage
+      this.invalidateFrontendCache();
 
     } catch (error) {
       console.error('Error saving category:', error);
@@ -504,6 +518,9 @@ class AdminInterface {
       // Reload data to reflect changes
       await this.loadData();
       this.closeProductModal();
+      
+      // Invalidate frontend cache so changes appear immediately on signage
+      this.invalidateFrontendCache();
 
     } catch (error) {
       console.error('Error saving product:', error);
@@ -629,6 +646,120 @@ class AdminInterface {
     } catch (error) {
       console.error('Error saving settings:', error);
       this.showToast('Failed to save settings', 'error');
+    }
+  }
+
+  /**
+   * Invalidate frontend cache to ensure changes appear immediately on signage
+   */
+  invalidateFrontendCache() {
+    try {
+      // Clear cache keys used by frontend CMS connector
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('team-pinas-cms-cache')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Also dispatch event to notify any open frontend tabs
+      window.postMessage({
+        type: 'CACHE_INVALIDATE',
+        source: 'admin-panel'
+      }, window.location.origin);
+      
+      console.log('Frontend cache invalidated');
+      this.showToast('Cache geleegd - wijzigingen direct zichtbaar', 'success');
+    } catch (error) {
+      console.warn('Failed to invalidate frontend cache:', error);
+    }
+  }
+
+  /**
+   * Initialize drag and drop functionality for categories
+   */
+  initializeDragAndDrop() {
+    const categoryItems = document.querySelectorAll('.category-item');
+    
+    categoryItems.forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', e.target.dataset.categoryId);
+        e.target.style.opacity = '0.5';
+      });
+      
+      item.addEventListener('dragend', (e) => {
+        e.target.style.opacity = '1';
+      });
+      
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.add('border-blue-400', 'bg-blue-50');
+      });
+      
+      item.addEventListener('dragleave', (e) => {
+        e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+      });
+      
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+        
+        const draggedId = e.dataTransfer.getData('text/plain');
+        const targetId = e.currentTarget.dataset.categoryId;
+        
+        if (draggedId !== targetId) {
+          this.reorderCategories(draggedId, targetId);
+        }
+      });
+    });
+  }
+
+  /**
+   * Reorder categories after drag and drop
+   */
+  async reorderCategories(draggedId, targetId) {
+    try {
+      // Find the categories
+      const draggedCategory = this.categories.find(c => c.id == draggedId);
+      const targetCategory = this.categories.find(c => c.id == targetId);
+      
+      if (!draggedCategory || !targetCategory) return;
+      
+      // Swap display orders
+      const tempOrder = draggedCategory.display_order;
+      draggedCategory.display_order = targetCategory.display_order;
+      targetCategory.display_order = tempOrder;
+      
+      // Update both categories in database
+      await Promise.all([
+        this.apiCall(`/.netlify/functions/admin-categories?id=${draggedId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: draggedCategory.name,
+            display_order: draggedCategory.display_order,
+            active: draggedCategory.active
+          })
+        }),
+        this.apiCall(`/.netlify/functions/admin-categories?id=${targetId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: targetCategory.name,
+            display_order: targetCategory.display_order,
+            active: targetCategory.active
+          })
+        })
+      ]);
+      
+      // Reload data and invalidate cache
+      await this.loadData();
+      this.invalidateFrontendCache();
+      this.showToast('Volgorde bijgewerkt', 'success');
+      
+    } catch (error) {
+      console.error('Error reordering categories:', error);
+      this.showToast('Fout bij wijzigen volgorde: ' + error.message, 'error');
+      // Reload to restore original order
+      await this.loadData();
     }
   }
 
