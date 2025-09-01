@@ -9,7 +9,7 @@ body {
   /* CSS Custom Properties for dynamic heights and logo */
   --header-height: 15vh;
   --footer-height: 7.8vh;
-  --logo-size: 40vh; /* Make logo size configurable */
+  --logo-size: 36vh; /* Make logo size configurable */
   --body-height: calc(100vh - var(--header-height) - var(--footer-height));
   
   /* CSS Grid Layout for entire page */

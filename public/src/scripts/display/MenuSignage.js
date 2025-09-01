@@ -93,8 +93,8 @@ class DisplaySettings {
 
   applyLayoutHeights() {
     const headerHeight = parseInt(this.settings.header_height) || 15;
-    const footerHeight = parseInt(this.settings.footer_height) || 8;
-    const logoSize = parseInt(this.settings.logo_size) || 40; // Future CMS setting
+    const footerHeight = parseFloat(this.settings.footer_height) || 7.8; // Match CSS default
+    const logoSize = parseInt(this.settings.logo_size) || 36; // Match CSS default
     
     // Set CSS custom properties on body element
     document.body.style.setProperty('--header-height', `${headerHeight}vh`);

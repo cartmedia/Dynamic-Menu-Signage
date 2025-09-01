@@ -129,7 +129,8 @@ INSERT INTO signage_settings (setting_key, setting_value, data_type, description
 ('company_name', 'Team Pinas', 'string', 'Company name for branding', true),
 ('display_columns', '2', 'number', 'Number of columns to display (1 or 2)', true),
 ('header_height', '15', 'number', 'Header height in vh units', true),
-('footer_height', '8', 'number', 'Footer height in vh units', true)
+('footer_height', '7.8', 'number', 'Footer height in vh units', true),
+('logo_size', '36', 'number', 'Logo size in vh units', true)
 ON CONFLICT (setting_key) DO UPDATE SET
   setting_value = EXCLUDED.setting_value,
   updated_at = CURRENT_TIMESTAMP;
