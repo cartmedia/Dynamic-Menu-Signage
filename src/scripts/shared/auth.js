@@ -240,13 +240,22 @@ class AuthManager {
           window.adminInterface.init();
         } else {
           console.log('AdminInterface class not yet loaded, waiting...');
-          // Wait a bit for AdminInterface to load, then retry
-          setTimeout(() => {
+          // Wait for AdminInterface to load with multiple retries
+          let retries = 0;
+          const maxRetries = 20; // Try for 2 seconds
+          const waitForAdminInterface = () => {
             if (window.AdminInterface && !window.adminInterface) {
+              console.log('AdminInterface class loaded, initializing...');
               window.adminInterface = new window.AdminInterface();
               window.adminInterface.init();
+            } else if (retries < maxRetries) {
+              retries++;
+              setTimeout(waitForAdminInterface, 100);
+            } else {
+              console.error('AdminInterface class failed to load after 2 seconds');
             }
-          }, 100);
+          };
+          waitForAdminInterface();
         }
       } catch (error) {
         console.log('AdminInterface initialization error:', error.message);

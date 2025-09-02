@@ -1039,6 +1039,9 @@ class AdminInterface {
 
 }
 
+// Make AdminInterface class globally available
+window.AdminInterface = AdminInterface;
+
 // Initialize admin interface when page loads
 // NOTE: Actual initialization happens in auth.js after authentication
 window.adminInterface = null;
