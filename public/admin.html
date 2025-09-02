@@ -373,7 +373,8 @@
                                 <!-- Footer text lines will be added here dynamically -->
                             </div>
                             <button type="button" id="addFooterLine" 
-                                    class="flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                                    class="flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                                    onclick="addFooterLineHelper()">
                                 <i class="fas fa-plus mr-1"></i>
                                 Nieuwe regel toevoegen
                             </button>
@@ -579,10 +580,59 @@
         }
     </script>
     <script>
+        // Helper functions for footer text management (works without full AdminInterface)
+        function addFooterLineHelper() {
+            console.log('addFooterLineHelper called');
+            const container = document.getElementById('footerTextLines');
+            if (!container) {
+                console.error('footerTextLines container not found');
+                return;
+            }
+            
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'flex items-center space-x-2';
+            lineDiv.innerHTML = `
+                <input type="text" 
+                       class="flex-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="Voer footer tekst in..."
+                       value="">
+                <button type="button" class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-2" 
+                        onclick="removeFooterLineHelper(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(lineDiv);
+            console.log('Footer line added successfully');
+        }
+        
+        function removeFooterLineHelper(button) {
+            const lineDiv = button.closest('div');
+            if (lineDiv) {
+                lineDiv.remove();
+                console.log('Footer line removed');
+            }
+        }
+
         // Initialize components after DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize dark mode
             initDarkMode();
+            
+            // Initialize default footer lines if container is empty
+            const container = document.getElementById('footerTextLines');
+            if (container && container.children.length === 0) {
+                addFooterLineHelper();
+                const firstInput = container.querySelector('input');
+                if (firstInput) {
+                    firstInput.value = 'Investeer in jezelf of in je kind – personal training vanaf €37,50 per les. Begin vandaag nog!';
+                }
+                
+                addFooterLineHelper();
+                const secondInput = container.querySelectorAll('input')[1];
+                if (secondInput) {
+                    secondInput.value = 'Interesse? Meld je bij de bar of stuur ons een mailtje.';
+                }
+            }
             
             // Initialize login form
             const loginForm = document.getElementById('loginForm');

@@ -37,59 +37,83 @@ class AdminInterface {
   }
 
   setupEventListeners() {
+    console.log('Setting up event listeners...');
+    
+    // Helper function to safely add event listener
+    const safeAddEventListener = (elementId, event, handler) => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.addEventListener(event, handler);
+        console.log(`Event listener added for ${elementId}`);
+      } else {
+        console.error(`Element not found: ${elementId}`);
+      }
+    };
+
     // Refresh button
-    document.getElementById('refreshBtn').addEventListener('click', () => {
+    safeAddEventListener('refreshBtn', 'click', () => {
       this.loadData();
     });
 
     // Category modal handlers
-    document.getElementById('addCategoryBtn').addEventListener('click', () => {
+    safeAddEventListener('addCategoryBtn', 'click', () => {
       this.openCategoryModal();
     });
     
-    document.getElementById('saveCategoryBtn').addEventListener('click', () => {
+    safeAddEventListener('saveCategoryBtn', 'click', () => {
       this.saveCategory();
     });
     
-    document.getElementById('cancelCategoryBtn').addEventListener('click', () => {
+    safeAddEventListener('cancelCategoryBtn', 'click', () => {
       this.closeCategoryModal();
     });
 
     // Product modal handlers
-    document.getElementById('addProductBtn').addEventListener('click', () => {
+    safeAddEventListener('addProductBtn', 'click', () => {
       this.openProductModal();
     });
     
-    document.getElementById('saveProductBtn').addEventListener('click', () => {
+    safeAddEventListener('saveProductBtn', 'click', () => {
       this.saveProduct();
     });
     
-    document.getElementById('cancelProductBtn').addEventListener('click', () => {
+    safeAddEventListener('cancelProductBtn', 'click', () => {
       this.closeProductModal();
     });
 
     // Settings handlers
-    document.getElementById('saveSettings').addEventListener('click', () => {
+    safeAddEventListener('saveSettings', 'click', () => {
       this.saveDisplaySettings();
     });
 
-    // Footer text lines handlers
-    document.getElementById('addFooterLine').addEventListener('click', () => {
-      this.addFooterTextLine();
-    });
+    // Footer text lines handlers - WITH DEBUGGING
+    const addFooterLineBtn = document.getElementById('addFooterLine');
+    if (addFooterLineBtn) {
+      console.log('Found addFooterLine button:', addFooterLineBtn);
+      addFooterLineBtn.addEventListener('click', (e) => {
+        console.log('addFooterLine button clicked!', e);
+        this.addFooterTextLine();
+      });
+      console.log('Event listener added for addFooterLine button');
+    } else {
+      console.error('addFooterLine button NOT FOUND');
+    }
 
     // Category filter
-    document.getElementById('categoryFilter').addEventListener('change', (e) => {
+    safeAddEventListener('categoryFilter', 'change', (e) => {
       this.filterProducts(e.target.value);
     });
 
     // Close modals on background click
     ['categoryModal', 'productModal'].forEach(modalId => {
-      document.getElementById(modalId).addEventListener('click', (e) => {
-        if (e.target.id === modalId) {
-          this.closeModal(modalId);
-        }
-      });
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target.id === modalId) {
+            this.closeModal(modalId);
+          }
+        });
+      }
     });
   }
 
@@ -943,10 +967,18 @@ class AdminInterface {
    * Add a new footer text line input element
    */
   addFooterTextLineElement(value = '', index = null) {
+    console.log('addFooterTextLineElement() called with value:', value, 'index:', index);
+    
     const container = document.getElementById('footerTextLines');
-    if (!container) return;
+    console.log('footerTextLines container:', container);
+    
+    if (!container) {
+      console.error('footerTextLines container NOT FOUND');
+      return;
+    }
     
     const lineIndex = index !== null ? index : container.children.length;
+    console.log('Creating new footer line with index:', lineIndex);
     
     const lineDiv = document.createElement('div');
     lineDiv.className = 'flex items-center space-x-2';
@@ -962,14 +994,22 @@ class AdminInterface {
       </button>
     `;
     
+    console.log('Appending line div to container...');
     container.appendChild(lineDiv);
+    console.log('Footer text line added successfully');
   }
 
   /**
    * Add new empty footer text line
    */
   addFooterTextLine() {
-    this.addFooterTextLineElement();
+    console.log('addFooterTextLine() called');
+    try {
+      this.addFooterTextLineElement();
+      console.log('addFooterTextLineElement() completed successfully');
+    } catch (error) {
+      console.error('Error in addFooterTextLine():', error);
+    }
   }
 
   /**
@@ -1000,7 +1040,5 @@ class AdminInterface {
 }
 
 // Initialize admin interface when page loads
+// NOTE: Actual initialization happens in auth.js after authentication
 window.adminInterface = null;
-document.addEventListener('DOMContentLoaded', () => {
-  window.adminInterface = new AdminInterface();
-});

@@ -227,10 +227,13 @@ class AuthManager {
     
     // Initialize admin interface if not already done
     if (!window.adminInterface) {
+      console.log('Creating new AdminInterface instance...');
       window.adminInterface = new AdminInterface();
-      // Now initialize it after authentication is confirmed
-      window.adminInterface.init();
     }
+    
+    // Always call init after authentication is confirmed
+    console.log('Calling adminInterface.init()...');
+    window.adminInterface.init();
   }
 
   showError(message) {
