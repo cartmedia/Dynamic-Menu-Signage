@@ -226,17 +226,21 @@ class AuthManager {
     }
     
     // Initialize admin interface if not already done (only on admin page)
-    if (typeof AdminInterface !== 'undefined') {
-      if (!window.adminInterface) {
-        console.log('Creating new AdminInterface instance...');
-        window.adminInterface = new AdminInterface();
+    try {
+      if (window.AdminInterface) {
+        if (!window.adminInterface) {
+          console.log('Creating new AdminInterface instance...');
+          window.adminInterface = new window.AdminInterface();
+        }
+        
+        // Always call init after authentication is confirmed
+        console.log('Calling adminInterface.init()...');
+        window.adminInterface.init();
+      } else {
+        console.log('AdminInterface not available on this page (not admin.html)');
       }
-      
-      // Always call init after authentication is confirmed
-      console.log('Calling adminInterface.init()...');
-      window.adminInterface.init();
-    } else {
-      console.log('AdminInterface not available on this page (not admin.html)');
+    } catch (error) {
+      console.log('AdminInterface not available on this page:', error.message);
     }
   }
 

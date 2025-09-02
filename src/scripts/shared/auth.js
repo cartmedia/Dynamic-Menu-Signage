@@ -225,12 +225,23 @@ class AuthManager {
       }
     }
     
-    // Initialize admin interface if not already done
-    if (!window.adminInterface) {
-      window.adminInterface = new AdminInterface();
+    // Initialize admin interface if not already done (only on admin page)
+    try {
+      if (window.AdminInterface) {
+        if (!window.adminInterface) {
+          console.log('Creating new AdminInterface instance...');
+          window.adminInterface = new window.AdminInterface();
+        }
+        
+        // Always call init after authentication is confirmed
+        console.log('Calling adminInterface.init()...');
+        window.adminInterface.init();
+      } else {
+        console.log('AdminInterface not available on this page (not admin.html)');
+      }
+    } catch (error) {
+      console.log('AdminInterface not available on this page:', error.message);
     }
-    // Always call init after authentication is confirmed
-    window.adminInterface.init();
   }
 
   showError(message) {
@@ -252,31 +263,15 @@ class AuthManager {
     }
 
     let authHeaders = { 'Content-Type': 'application/json' };
-    
-    // For now, always use API key fallback for admin endpoints to ensure they work
-    // TODO: Fix Auth0 token audience configuration for proper JWT authentication
-    const apiKey = 'team-pinas-admin-2024';
-    authHeaders['X-API-Key'] = apiKey;
-    
-    // Keep Auth0 token as backup (commented out until token audience is fixed)
-    /*
     if (!this.config.developmentMode) {
-      // Try Auth0 access token first
-      try {
-        const token = await this.auth0Client.getTokenSilently();
-        authHeaders.Authorization = `Bearer ${token}`;
-      } catch (error) {
-        console.warn('Auth0 token retrieval failed, falling back to API key:', error);
-        // Fallback to API key for Auth0 users
-        const apiKey = 'team-pinas-admin-2024';
-        authHeaders['X-API-Key'] = apiKey;
-      }
+      // Use Auth0 access token
+      const token = await this.auth0Client.getTokenSilently();
+      authHeaders.Authorization = `Bearer ${token}`;
     } else {
       // API key mode
       if (!this.apiKey) throw new Error('Missing API key');
       authHeaders['X-API-Key'] = this.apiKey;
     }
-    */
 
     const authOptions = {
       ...options,
@@ -288,27 +283,8 @@ class AuthManager {
 
     const response = await fetch(url, authOptions);
     
-    // If Auth0 token fails with 401, try API key fallback
-    if (response.status === 401 && !this.config.developmentMode && !authHeaders['X-API-Key']) {
-      console.warn('Auth0 token authentication failed, trying API key fallback');
-      const apiKey = 'team-pinas-admin-2024';
-      const fallbackOptions = {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': apiKey,
-          ...options.headers
-        }
-      };
-      const fallbackResponse = await fetch(url, fallbackOptions);
-      
-      if (fallbackResponse.ok) {
-        return fallbackResponse;
-      }
-    }
-    
     if (response.status === 401) {
-      // All authentication methods failed
+      // API key invalid, redirect to login
       this.logout();
       throw new Error('Authentication expired');
     }
