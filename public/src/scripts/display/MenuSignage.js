@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
 class DisplaySettings {
   constructor() {
     this.settings = {};
-    this.loadSettings();
+    this.loaded = false;
   }
 
   async loadSettings() {
@@ -74,6 +74,7 @@ class DisplaySettings {
     
     // Apply column layout
     this.applyColumnLayout();
+    this.loaded = true;
   }
 
   applyColumnLayout() {
@@ -110,20 +111,23 @@ class DisplaySettings {
   }
 }
 
-// Initialize display settings
+// Initialize display settings globally
 const displaySettings = new DisplaySettings();
 
-// Products rendering and rotation
-document.addEventListener("DOMContentLoaded", function () {
+// Main initialization function
+async function initializeSignage() {
   const SLOTS = [".CategorySlot[data-slot='1']", ".CategorySlot[data-slot='2']", ".CategorySlot[data-slot='3']", ".CategorySlot[data-slot='0']"];
   const PRIMARY_SLOT = SLOTS[0]; // Now points to slot 1
   let ROTATE_INTERVAL_MS = 6000; // Default, will be updated from settings
   
+  // Load settings first and wait for completion
+  console.log('Loading display settings...');
+  await displaySettings.loadSettings();
+  
   // Update rotation interval from settings
-  displaySettings.loadSettings().then(() => {
-    ROTATE_INTERVAL_MS = parseInt(displaySettings.settings.rotation_interval) || 6000;
-    console.log(`Updated rotation interval to ${ROTATE_INTERVAL_MS}ms`);
-  });
+  ROTATE_INTERVAL_MS = parseInt(displaySettings.settings.rotation_interval) || 6000;
+  console.log(`Updated rotation interval to ${ROTATE_INTERVAL_MS}ms`);
+  
 
   // Strip technical prefixes from names (e.g., "A Cola" -> "Cola")
   function cleanName(name) {
@@ -418,10 +422,24 @@ document.addEventListener("DOMContentLoaded", function () {
         window.addEventListener('cms-reconnected', refreshData);
       }
     })
-    .catch((err) => console.error("Error loading products data", err));
-});
+    .catch((err) => {
+      console.error("Error loading products data", err);
+      // Show error message in slots if products fail to load
+      SLOTS.forEach((s) => {
+        const slotEl = document.querySelector(s);
+        if (slotEl) {
+          slotEl.innerHTML = '<div class="CategoryTitle">Loading Error</div><div class="MenuItem"><div class="MenuItemType">Products could not be loaded</div><div class="MenuFoodItem">Please check connection</div></div>';
+        }
+      });
+    });
 
-document.addEventListener("DOMContentLoaded", function () {
+  // Initialize footer after main initialization
+  initializeFooter();
+}
+
+// Footer Management
+function initializeFooter() {
+  console.log('Initializing footer...');
   const scrollingTextSpan = document.querySelector(".ScrollingText span");
 
   // Footer slideshow management
@@ -485,18 +503,34 @@ document.addEventListener("DOMContentLoaded", function () {
   updateFooterContent();
   setAnimationDuration();
 
-  // Load settings when available
-  if (displaySettings) {
-    displaySettings.loadSettings().then(() => {
-      loadFooterSettings();
-    });
+  // Load settings when available - displaySettings should already be loaded at this point
+  if (displaySettings && displaySettings.loaded) {
+    loadFooterSettings();
   } else {
-    // Fallback if displaySettings not available
-    setTimeout(loadFooterSettings, 1000);
+    // Wait a bit for display settings to load if not ready yet
+    setTimeout(() => {
+      if (displaySettings && displaySettings.loaded) {
+        loadFooterSettings();
+      }
+    }, 500);
   }
 
   // Restart the animation when it ends to simulate an infinite scroll
-  scrollingTextSpan.addEventListener("animationiteration", () => {
-    setAnimationDuration();
-  });
+  if (scrollingTextSpan) {
+    scrollingTextSpan.addEventListener("animationiteration", () => {
+      setAnimationDuration();
+    });
+  }
+}
+
+// Products rendering and rotation - single DOMContentLoaded listener
+document.addEventListener("DOMContentLoaded", async function () {
+  console.log('DOM Content Loaded, initializing signage...');
+  
+  try {
+    await initializeSignage();
+    console.log('Signage initialization complete');
+  } catch (err) {
+    console.error('Failed to initialize signage:', err);
+  }
 });
