@@ -401,15 +401,32 @@ document.addEventListener("DOMContentLoaded", function () {
               console.log("CMS data updated, refreshing display");
               console.log("New categories from CMS:", newData.categories?.map(c => c.title));
               
-              // Clear cache and restart rotation
+              // Preserve current rotation position when possible
+              const currentCategoryTitle = categories[categoryIndex]?.title;
+              
+              // Clear cache but preserve rotation state
               visibleCountCache.clear();
-              categoryIndex = 0;
-              pagePartIndex = 0;
               
               // Update categories with new data
               const newCategories = Array.isArray(newData.categories) ? newData.categories : [];
               categories.length = 0;
               categories.push(...newCategories);
+              
+              // Try to find the same category in the new data to preserve position
+              if (currentCategoryTitle) {
+                const newIndex = categories.findIndex(cat => cat.title === currentCategoryTitle);
+                if (newIndex !== -1) {
+                  categoryIndex = newIndex;
+                  console.log(`Preserved rotation position at category: ${currentCategoryTitle} (${newIndex})`);
+                } else {
+                  categoryIndex = 0;
+                  pagePartIndex = 0;
+                  console.log("Could not preserve position, resetting to start");
+                }
+              } else {
+                categoryIndex = 0;
+                pagePartIndex = 0;
+              }
               
               console.log("Updated categories array:", categories.map(c => c.title));
               

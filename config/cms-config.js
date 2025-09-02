@@ -20,7 +20,7 @@ const CMS_CONFIG = {
   // Update intervals
   refresh: {
     // How often to check for updates (in milliseconds)
-    interval: 30000, // 30 seconds
+    interval: 300000, // 5 minutes (reduced from 30 seconds)
     // Retry interval on failed requests
     retryInterval: 10000, // 10 seconds
     // Maximum retry attempts
