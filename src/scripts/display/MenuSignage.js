@@ -192,7 +192,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   loadProducts()
     .then((data) => {
+      console.log("Initial data loaded:", data);
       const categories = Array.isArray(data.categories) ? data.categories : [];
+      console.log("Initial categories:", categories.map(c => c.title));
       if (categories.length === 0) {
         SLOTS.forEach((s) => (document.querySelector(s).innerHTML = ""));
         return;
@@ -397,6 +399,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Only update if data has actually changed
             if (JSON.stringify(newData) !== JSON.stringify(data)) {
               console.log("CMS data updated, refreshing display");
+              console.log("New categories from CMS:", newData.categories?.map(c => c.title));
               
               // Clear cache and restart rotation
               visibleCountCache.clear();
@@ -407,6 +410,8 @@ document.addEventListener("DOMContentLoaded", function () {
               const newCategories = Array.isArray(newData.categories) ? newData.categories : [];
               categories.length = 0;
               categories.push(...newCategories);
+              
+              console.log("Updated categories array:", categories.map(c => c.title));
               
               // Re-render all slots
               renderDynamicSlots();
