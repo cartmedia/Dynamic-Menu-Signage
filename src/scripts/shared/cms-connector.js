@@ -25,11 +25,12 @@ class CMSConnector {
   async getProducts() {
     const cacheKey = 'products';
     
-    // Try cache first
-    if (this.config.cache.enabled && this.isCacheValid(cacheKey)) {
-      console.log('Loading products from cache');
-      return this.getFromCache(cacheKey);
-    }
+    // Try cache first (disabled for debugging)
+    console.log('Cache disabled for debugging - loading fresh data');
+    // if (this.config.cache.enabled && this.isCacheValid(cacheKey)) {
+    //   console.log('Loading products from cache');
+    //   return this.getFromCache(cacheKey);
+    // }
 
     // Try CMS API if online
     if (this.isOnline) {
@@ -42,7 +43,10 @@ class CMSConnector {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('Raw CMS API data:', data);
+          console.log('Raw categories:', data.categories?.map(c => ({ title: c.title, display_order: c.display_order })));
           const mappedData = this.mapProductsData(data);
+          console.log('Mapped categories:', mappedData.categories?.map(c => c.title));
           
           // Cache the result
           this.setCache(cacheKey, mappedData);
