@@ -510,21 +510,57 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Load footer settings from CMS
   async function loadFooterSettings() {
+    console.log('loadFooterSettings called');
+    console.log('displaySettings:', displaySettings);
+    console.log('displaySettings.settings:', displaySettings?.settings);
+    
     if (displaySettings && displaySettings.settings) {
+      const oldFooterText = footerText;
       footerSpeed = parseInt(displaySettings.settings.footer_speed) || 30;
-      footerText = displaySettings.settings.footer_text || footerText;
+      footerText = displaySettings.settings.footer_text || "";
       footerContinuous = displaySettings.settings.footer_continuous !== false; // Default to true
+      
+      console.log('Database footer settings:');
+      console.log(`  footer_speed: ${displaySettings.settings.footer_speed} -> ${footerSpeed}`);
+      console.log(`  footer_text: ${displaySettings.settings.footer_text}`);
+      console.log(`  footer_continuous: ${displaySettings.settings.footer_continuous} -> ${footerContinuous}`);
+      
+      // If no footer text from database, hide footer
+      if (!footerText.trim()) {
+        console.log('No footer text in database, hiding footer');
+        const footerContainer = document.querySelector('.Footer');
+        if (footerContainer) {
+          footerContainer.style.display = 'none';
+        }
+        return;
+      }
       
       console.log(`Footer settings loaded - Speed: ${footerSpeed}px/s, Continuous: ${footerContinuous}, Text: ${footerText.substring(0, 50)}...`);
       
+      // Show footer now that we have valid content
+      const footerContainer = document.querySelector('.Footer');
+      if (footerContainer) {
+        footerContainer.style.display = 'block';
+        console.log('Footer shown with database content');
+      }
+      
       updateFooterContent();
       setAnimationDuration();
+    } else {
+      console.log('No displaySettings available, hiding footer');
+      const footerContainer = document.querySelector('.Footer');
+      if (footerContainer) {
+        footerContainer.style.display = 'none';
+      }
     }
   }
 
-  // Initial setup
-  updateFooterContent();
-  setAnimationDuration();
+  // Hide footer initially until settings are loaded
+  const footerContainer = document.querySelector('.Footer');
+  if (footerContainer) {
+    footerContainer.style.display = 'none';
+    console.log('Footer hidden initially, waiting for settings');
+  }
 
   // Load settings when available
   if (displaySettings) {
@@ -533,7 +569,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   } else {
     // Fallback if displaySettings not available
-    setTimeout(loadFooterSettings, 1000);
+    console.log('No displaySettings available, keeping footer hidden');
   }
 
   // Restart the animation when it ends to simulate an infinite scroll
