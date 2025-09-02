@@ -369,12 +369,17 @@ document.addEventListener("DOMContentLoaded", function () {
           const items = categories[categoryIndex].items || [];
           const totalParts = Math.max(1, Math.ceil(items.length / Math.max(1, visibleCount)));
           
+          console.log(`Category: ${categories[categoryIndex].title} (${categoryIndex}), pagePartIndex: ${pagePartIndex}, totalParts: ${totalParts}, visibleCount: ${visibleCount}`);
+          
           if (pagePartIndex >= totalParts) {
+            const oldCategoryIndex = categoryIndex;
             pagePartIndex = 0;
             categoryIndex = (categoryIndex + 1) % categories.length;
+            console.log(`Advancing from category ${oldCategoryIndex} (${categories[oldCategoryIndex].title}) to ${categoryIndex} (${categories[categoryIndex].title})`);
           }
         } else {
           // Skip empty categories
+          console.log(`Skipping empty category ${categoryIndex}: ${categories[categoryIndex]?.title || 'undefined'}`);
           pagePartIndex = 0;
           categoryIndex = (categoryIndex + 1) % categories.length;
         }
