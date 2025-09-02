@@ -44,7 +44,10 @@ class CMSConnector {
         if (response.ok) {
           const data = await response.json();
           console.log('Raw CMS API data:', data);
-          console.log('Raw categories:', data.categories?.map(c => ({ title: c.title, display_order: c.display_order })));
+          console.log('Raw categories with display_order:');
+          data.categories?.forEach((c, idx) => {
+            console.log(`  ${idx}: ${c.title} (display_order: ${c.display_order})`);
+          });
           const mappedData = this.mapProductsData(data);
           console.log('Mapped categories:', mappedData.categories?.map(c => c.title));
           
