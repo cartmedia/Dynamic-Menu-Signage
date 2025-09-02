@@ -989,7 +989,7 @@ class AdminInterface {
              value="${value}"
              data-line-index="${lineIndex}">
       <button type="button" class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-2" 
-              onclick="adminInterface.removeFooterTextLine(this)">
+              onclick="window.adminInterface.removeFooterTextLine(this)">
         <i class="fas fa-trash"></i>
       </button>
     `;
