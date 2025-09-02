@@ -1006,6 +1006,7 @@ class AdminInterface {
     console.log('addFooterTextLine() called');
     try {
       this.addFooterTextLineElement();
+      this.toggleFooterVisibility(true);
       console.log('addFooterTextLineElement() completed successfully');
     } catch (error) {
       console.error('Error in addFooterTextLine():', error);
@@ -1019,7 +1020,22 @@ class AdminInterface {
     const lineDiv = button.closest('div');
     if (lineDiv) {
       lineDiv.remove();
+      
+      // Check if no lines remain and hide footer if empty
+      const container = document.getElementById('footerTextLines');
+      if (container && container.children.length === 0) {
+        this.toggleFooterVisibility(false);
+      }
     }
+  }
+
+  /**
+   * Toggle footer visibility on signage display based on content
+   */
+  toggleFooterVisibility(show) {
+    // This will be handled by the display script based on footer_text content
+    // When footer_text is empty, the footer should be hidden
+    console.log('Footer visibility toggled:', show ? 'visible' : 'hidden');
   }
 
   /**

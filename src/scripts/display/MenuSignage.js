@@ -434,6 +434,20 @@ document.addEventListener("DOMContentLoaded", function () {
     
     // Split text by custom separator and add SVG dividers
     const textParts = footerText.split('||').filter(part => part.trim());
+    
+    // Hide footer if no content
+    const footerContainer = document.querySelector('.Footer');
+    if (textParts.length === 0 || !footerText.trim()) {
+      if (footerContainer) {
+        footerContainer.style.display = 'none';
+      }
+      return;
+    } else {
+      if (footerContainer) {
+        footerContainer.style.display = 'block';
+      }
+    }
+    
     let htmlContent = '';
     
     // Create the scrolling content with SVG separators
