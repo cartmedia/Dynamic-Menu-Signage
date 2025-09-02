@@ -73,6 +73,11 @@ class AdminInterface {
       this.saveDisplaySettings();
     });
 
+    // Footer text lines handlers
+    document.getElementById('addFooterLine').addEventListener('click', () => {
+      this.addFooterTextLine();
+    });
+
     // Category filter
     document.getElementById('categoryFilter').addEventListener('change', (e) => {
       this.filterProducts(e.target.value);
@@ -117,7 +122,6 @@ class AdminInterface {
 
       this.renderCategories();
       this.renderProducts();
-      this.renderSettings();
       this.updateCategoryDropdowns();
       this.updateStats();
       
@@ -139,18 +143,26 @@ class AdminInterface {
       return;
     }
 
-    container.innerHTML = this.categories.map(category => {
+    container.innerHTML = this.categories.map((category, index) => {
       const productCount = category.product_count || 0;
       return `
-        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-          <div class="flex-1">
-            <div class="flex items-center">
-              <span class="font-medium text-gray-900">${category.name || 'Unnamed'}</span>
-              <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${category.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                ${category.active ? 'Actief' : 'Inactief'}
-              </span>
+        <div class="category-item flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-move" 
+             draggable="true" 
+             data-category-id="${category.id}" 
+             data-order="${category.display_order}">
+          <div class="flex items-center flex-1">
+            <div class="drag-handle mr-3 text-gray-400 hover:text-gray-600 cursor-grab">
+              <i class="fas fa-grip-vertical"></i>
             </div>
-            <p class="text-sm text-gray-500">${productCount} producten</p>
+            <div class="flex-1">
+              <div class="flex items-center">
+                <span class="font-medium text-gray-900">${category.name || 'Unnamed'}</span>
+                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${category.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                  ${category.active ? 'Actief' : 'Inactief'}
+                </span>
+              </div>
+              <p class="text-sm text-gray-500">${productCount} producten</p>
+            </div>
           </div>
           <div class="flex space-x-2">
             <button onclick="adminInterface.editCategory(${category.id})" 
@@ -165,6 +177,9 @@ class AdminInterface {
         </div>
       `;
     }).join('');
+    
+    // Add drag and drop listeners
+    this.initializeDragAndDrop();
   }
 
   renderProducts() {
@@ -178,9 +193,18 @@ class AdminInterface {
     tbody.innerHTML = this.products.map(product => {
       const price = parseFloat(product.price) || 0;
       return `
-        <tr class="hover:bg-gray-50">
+        <tr class="product-item hover:bg-gray-50 cursor-move" 
+            draggable="true" 
+            data-product-id="${product.id}" 
+            data-category-id="${product.category_id}"
+            data-order="${product.display_order}">
           <td class="px-6 py-4 whitespace-nowrap">
-            <div class="text-sm font-medium text-gray-900">${product.name || 'Unnamed'}</div>
+            <div class="flex items-center">
+              <div class="drag-handle-product mr-3 text-gray-400 hover:text-gray-600 cursor-grab">
+                <i class="fas fa-grip-vertical"></i>
+              </div>
+              <div class="text-sm font-medium text-gray-900">${product.name || 'Unnamed'}</div>
+            </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
@@ -208,6 +232,9 @@ class AdminInterface {
         </tr>
       `;
     }).join('');
+    
+    // Add drag and drop listeners for products
+    this.initializeProductDragAndDrop();
   }
 
   updateCategoryDropdowns() {
@@ -280,9 +307,18 @@ class AdminInterface {
     tbody.innerHTML = filteredProducts.map(product => {
       const price = parseFloat(product.price) || 0;
       return `
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+        <tr class="product-item hover:bg-gray-50 dark:hover:bg-gray-700 cursor-move" 
+            draggable="true" 
+            data-product-id="${product.id}" 
+            data-category-id="${product.category_id}"
+            data-order="${product.display_order}">
           <td class="px-6 py-4 whitespace-nowrap">
-            <div class="text-sm font-medium text-gray-900 dark:text-white">${product.name || 'Unnamed'}</div>
+            <div class="flex items-center">
+              <div class="drag-handle-product mr-3 text-gray-400 hover:text-gray-600 cursor-grab">
+                <i class="fas fa-grip-vertical"></i>
+              </div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">${product.name || 'Unnamed'}</div>
+            </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
@@ -310,6 +346,9 @@ class AdminInterface {
         </tr>
       `;
     }).join('');
+    
+    // Re-initialize drag and drop for filtered products
+    this.initializeProductDragAndDrop();
   }
 
   // Category Modal Functions
@@ -385,6 +424,9 @@ class AdminInterface {
       // Reload data to reflect changes
       await this.loadData();
       this.closeCategoryModal();
+      
+      // Invalidate frontend cache so changes appear immediately on signage
+      this.invalidateFrontendCache();
 
     } catch (error) {
       console.error('Error saving category:', error);
@@ -505,6 +547,9 @@ class AdminInterface {
       // Reload data to reflect changes
       await this.loadData();
       this.closeProductModal();
+      
+      // Invalidate frontend cache so changes appear immediately on signage
+      this.invalidateFrontendCache();
 
     } catch (error) {
       console.error('Error saving product:', error);
@@ -585,50 +630,371 @@ class AdminInterface {
       if (response.ok) {
         const data = await response.json();
         
-        // Populate settings form
-        document.getElementById('displayColumns').value = data.settings.display_columns || '2';
-        document.getElementById('rotationInterval').value = data.settings.rotation_interval || '6000';
-        document.getElementById('footerText').value = data.settings.footer_text || '';
-        document.getElementById('headerHeight').value = data.settings.header_height || '15';
-        document.getElementById('footerHeight').value = data.settings.footer_height || '8';
+        // Populate settings form - check if elements exist first
+        const displayColumns = document.getElementById('displayColumns');
+        const headerHeight = document.getElementById('headerHeight');
+        const footerHeight = document.getElementById('footerHeight');
+        const footerText = document.getElementById('footerText');
+        const footerSpeed = document.getElementById('footerSpeed');
+        const footerContinuous = document.getElementById('footerContinuous');
+        
+        if (displayColumns) displayColumns.value = data.settings.display_columns || '2';
+        if (headerHeight) headerHeight.value = data.settings.header_height || '15';
+        if (footerHeight) footerHeight.value = data.settings.footer_height || '8';
+        if (footerSpeed) footerSpeed.value = data.settings.footer_speed || '30';
+        if (footerContinuous) footerContinuous.value = data.settings.footer_continuous !== false ? 'true' : 'false';
+        
+        // Load footer text lines
+        this.loadFooterTextLines(data.settings.footer_text);
         
         console.log('Settings loaded:', data.settings);
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
-      this.showToast('Failed to load settings', 'error');
+      // Don't show error toast for missing form elements
     }
   }
 
   async saveDisplaySettings() {
     try {
-      const displayColumns = document.getElementById('displayColumns').value;
-      const rotationInterval = document.getElementById('rotationInterval').value;
-      const footerText = document.getElementById('footerText').value;
-      const headerHeight = document.getElementById('headerHeight').value;
-      const footerHeight = document.getElementById('footerHeight').value;
+      // Safely get form elements with fallback values
+      const displayColumns = document.getElementById('displayColumns')?.value || '2';
+      const headerHeight = document.getElementById('headerHeight')?.value || '15';
+      const footerHeight = document.getElementById('footerHeight')?.value || '8';
+      const footerSpeed = document.getElementById('footerSpeed')?.value || '30';
+      const footerContinuous = document.getElementById('footerContinuous')?.value === 'true';
+      
+      // Collect footer text lines from dynamic inputs
+      const footerText = this.collectFooterTextLines();
+
+      const settingsData = {
+        display_columns: parseInt(displayColumns),
+        header_height: parseInt(headerHeight),
+        footer_height: parseInt(footerHeight),
+        footer_text: footerText,
+        footer_speed: parseInt(footerSpeed),
+        footer_continuous: footerContinuous
+      };
 
       const response = await this.apiCall('/.netlify/functions/settings', {
         method: 'PUT',
-        body: JSON.stringify({
-          display_columns: parseInt(displayColumns),
-          rotation_interval: parseInt(rotationInterval),
-          footer_text: footerText,
-          header_height: parseInt(headerHeight),
-          footer_height: parseInt(footerHeight)
-        })
+        body: JSON.stringify(settingsData)
       });
 
       if (response.ok) {
-        this.showToast('Settings saved successfully!');
-        console.log('Settings saved - display columns:', displayColumns);
+        this.showToast('Display instellingen opgeslagen!');
+        console.log('Display settings saved:', settingsData);
       } else {
         throw new Error('Failed to save settings');
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      this.showToast('Failed to save settings', 'error');
+      this.showToast('Fout bij opslaan instellingen: ' + error.message, 'error');
     }
+  }
+
+  /**
+   * Invalidate frontend cache to ensure changes appear immediately on signage
+   */
+  invalidateFrontendCache() {
+    try {
+      // Clear cache keys used by frontend CMS connector
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('team-pinas-cms-cache')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Also dispatch event to notify any open frontend tabs
+      window.postMessage({
+        type: 'CACHE_INVALIDATE',
+        source: 'admin-panel'
+      }, window.location.origin);
+      
+      console.log('Frontend cache invalidated');
+      this.showToast('Cache geleegd - wijzigingen direct zichtbaar', 'success');
+    } catch (error) {
+      console.warn('Failed to invalidate frontend cache:', error);
+    }
+  }
+
+  /**
+   * Initialize drag and drop functionality for products
+   */
+  initializeProductDragAndDrop() {
+    const productItems = document.querySelectorAll('.product-item');
+    
+    productItems.forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+          productId: e.target.dataset.productId,
+          categoryId: e.target.dataset.categoryId
+        }));
+        e.target.style.opacity = '0.5';
+      });
+      
+      item.addEventListener('dragend', (e) => {
+        e.target.style.opacity = '1';
+      });
+      
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.add('bg-blue-50', 'border-blue-300');
+      });
+      
+      item.addEventListener('dragleave', (e) => {
+        e.currentTarget.classList.remove('bg-blue-50', 'border-blue-300');
+      });
+      
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('bg-blue-50', 'border-blue-300');
+        
+        const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+        const targetProductId = e.currentTarget.dataset.productId;
+        const targetCategoryId = e.currentTarget.dataset.categoryId;
+        
+        if (dragData.productId !== targetProductId) {
+          // Only allow reordering within the same category
+          if (dragData.categoryId === targetCategoryId) {
+            this.reorderProducts(dragData.productId, targetProductId);
+          } else {
+            this.showToast('Producten kunnen alleen binnen dezelfde categorie worden gesorteerd', 'error');
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * Initialize drag and drop functionality for categories
+   */
+  initializeDragAndDrop() {
+    const categoryItems = document.querySelectorAll('.category-item');
+    
+    categoryItems.forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', e.target.dataset.categoryId);
+        e.target.style.opacity = '0.5';
+      });
+      
+      item.addEventListener('dragend', (e) => {
+        e.target.style.opacity = '1';
+      });
+      
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.add('border-blue-400', 'bg-blue-50');
+      });
+      
+      item.addEventListener('dragleave', (e) => {
+        e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+      });
+      
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+        
+        const draggedId = e.dataTransfer.getData('text/plain');
+        const targetId = e.currentTarget.dataset.categoryId;
+        
+        if (draggedId !== targetId) {
+          this.reorderCategories(draggedId, targetId);
+        }
+      });
+    });
+  }
+
+  /**
+   * Reorder categories after drag and drop
+   */
+  async reorderCategories(draggedId, targetId) {
+    try {
+      // Find the categories
+      const draggedCategory = this.categories.find(c => c.id == draggedId);
+      const targetCategory = this.categories.find(c => c.id == targetId);
+      
+      if (!draggedCategory || !targetCategory) return;
+      
+      // Swap display orders
+      const tempOrder = draggedCategory.display_order;
+      draggedCategory.display_order = targetCategory.display_order;
+      targetCategory.display_order = tempOrder;
+      
+      // Update both categories in database
+      await Promise.all([
+        this.apiCall(`/.netlify/functions/admin-categories?id=${draggedId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: draggedCategory.name,
+            display_order: draggedCategory.display_order,
+            active: draggedCategory.active
+          })
+        }),
+        this.apiCall(`/.netlify/functions/admin-categories?id=${targetId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: targetCategory.name,
+            display_order: targetCategory.display_order,
+            active: targetCategory.active
+          })
+        })
+      ]);
+      
+      // Reload data and invalidate cache
+      await this.loadData();
+      this.invalidateFrontendCache();
+      this.showToast('Volgorde bijgewerkt', 'success');
+      
+    } catch (error) {
+      console.error('Error reordering categories:', error);
+      this.showToast('Fout bij wijzigen volgorde: ' + error.message, 'error');
+      // Reload to restore original order
+      await this.loadData();
+    }
+  }
+
+  /**
+   * Reorder products after drag and drop within the same category
+   */
+  async reorderProducts(draggedId, targetId) {
+    try {
+      // Find the products
+      const draggedProduct = this.products.find(p => p.id == draggedId);
+      const targetProduct = this.products.find(p => p.id == targetId);
+      
+      if (!draggedProduct || !targetProduct) return;
+      
+      // Swap display orders
+      const tempOrder = draggedProduct.display_order;
+      draggedProduct.display_order = targetProduct.display_order;
+      targetProduct.display_order = tempOrder;
+      
+      // Update both products in database
+      await Promise.all([
+        this.apiCall(`/.netlify/functions/admin-products?id=${draggedId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: draggedProduct.name,
+            category_id: draggedProduct.category_id,
+            price: draggedProduct.price,
+            description: draggedProduct.description,
+            display_order: draggedProduct.display_order,
+            active: draggedProduct.active
+          })
+        }),
+        this.apiCall(`/.netlify/functions/admin-products?id=${targetId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: targetProduct.name,
+            category_id: targetProduct.category_id,
+            price: targetProduct.price,
+            description: targetProduct.description,
+            display_order: targetProduct.display_order,
+            active: targetProduct.active
+          })
+        })
+      ]);
+      
+      // Reload data and invalidate cache
+      await this.loadData();
+      this.invalidateFrontendCache();
+      this.showToast('Product volgorde bijgewerkt', 'success');
+      
+    } catch (error) {
+      console.error('Error reordering products:', error);
+      this.showToast('Fout bij wijzigen product volgorde: ' + error.message, 'error');
+      // Reload to restore original order
+      await this.loadData();
+    }
+  }
+
+  /**
+   * Load footer text lines into dynamic interface
+   */
+  loadFooterTextLines(footerTextSetting) {
+    const container = document.getElementById('footerTextLines');
+    if (!container) return;
+    
+    // Parse the footer text (either || separated string or already an array)
+    let lines = [];
+    if (typeof footerTextSetting === 'string') {
+      lines = footerTextSetting.split('||').filter(line => line.trim());
+    } else if (Array.isArray(footerTextSetting)) {
+      lines = footerTextSetting;
+    }
+    
+    // Default lines if none exist
+    if (lines.length === 0) {
+      lines = [
+        'Investeer in jezelf of in je kind – personal training vanaf €37,50 per les. Begin vandaag nog!',
+        'Interesse? Meld je bij de bar of stuur ons een mailtje.'
+      ];
+    }
+    
+    container.innerHTML = '';
+    lines.forEach((line, index) => {
+      this.addFooterTextLineElement(line.trim(), index);
+    });
+  }
+
+  /**
+   * Add a new footer text line input element
+   */
+  addFooterTextLineElement(value = '', index = null) {
+    const container = document.getElementById('footerTextLines');
+    if (!container) return;
+    
+    const lineIndex = index !== null ? index : container.children.length;
+    
+    const lineDiv = document.createElement('div');
+    lineDiv.className = 'flex items-center space-x-2';
+    lineDiv.innerHTML = `
+      <input type="text" 
+             class="flex-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+             placeholder="Voer footer tekst in..."
+             value="${value}"
+             data-line-index="${lineIndex}">
+      <button type="button" class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-2" 
+              onclick="adminInterface.removeFooterTextLine(this)">
+        <i class="fas fa-trash"></i>
+      </button>
+    `;
+    
+    container.appendChild(lineDiv);
+  }
+
+  /**
+   * Add new empty footer text line
+   */
+  addFooterTextLine() {
+    this.addFooterTextLineElement();
+  }
+
+  /**
+   * Remove a footer text line
+   */
+  removeFooterTextLine(button) {
+    const lineDiv = button.closest('div');
+    if (lineDiv) {
+      lineDiv.remove();
+    }
+  }
+
+  /**
+   * Collect all footer text lines into a string
+   */
+  collectFooterTextLines() {
+    const container = document.getElementById('footerTextLines');
+    if (!container) return '';
+    
+    const inputs = container.querySelectorAll('input[type="text"]');
+    const lines = Array.from(inputs)
+      .map(input => input.value.trim())
+      .filter(line => line.length > 0);
+    
+    return lines.join('||');
   }
 
 }

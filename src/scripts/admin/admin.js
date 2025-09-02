@@ -73,6 +73,11 @@ class AdminInterface {
       this.saveDisplaySettings();
     });
 
+    // Footer text lines handlers
+    document.getElementById('addFooterLine').addEventListener('click', () => {
+      this.addFooterTextLine();
+    });
+
     // Category filter
     document.getElementById('categoryFilter').addEventListener('change', (e) => {
       this.filterProducts(e.target.value);
@@ -629,10 +634,18 @@ class AdminInterface {
         const displayColumns = document.getElementById('displayColumns');
         const headerHeight = document.getElementById('headerHeight');
         const footerHeight = document.getElementById('footerHeight');
+        const footerText = document.getElementById('footerText');
+        const footerSpeed = document.getElementById('footerSpeed');
+        const footerContinuous = document.getElementById('footerContinuous');
         
         if (displayColumns) displayColumns.value = data.settings.display_columns || '2';
         if (headerHeight) headerHeight.value = data.settings.header_height || '15';
         if (footerHeight) footerHeight.value = data.settings.footer_height || '8';
+        if (footerSpeed) footerSpeed.value = data.settings.footer_speed || '30';
+        if (footerContinuous) footerContinuous.value = data.settings.footer_continuous !== false ? 'true' : 'false';
+        
+        // Load footer text lines
+        this.loadFooterTextLines(data.settings.footer_text);
         
         console.log('Settings loaded:', data.settings);
       }
@@ -648,11 +661,19 @@ class AdminInterface {
       const displayColumns = document.getElementById('displayColumns')?.value || '2';
       const headerHeight = document.getElementById('headerHeight')?.value || '15';
       const footerHeight = document.getElementById('footerHeight')?.value || '8';
+      const footerSpeed = document.getElementById('footerSpeed')?.value || '30';
+      const footerContinuous = document.getElementById('footerContinuous')?.value === 'true';
+      
+      // Collect footer text lines from dynamic inputs
+      const footerText = this.collectFooterTextLines();
 
       const settingsData = {
         display_columns: parseInt(displayColumns),
         header_height: parseInt(headerHeight),
-        footer_height: parseInt(footerHeight)
+        footer_height: parseInt(footerHeight),
+        footer_text: footerText,
+        footer_speed: parseInt(footerSpeed),
+        footer_continuous: footerContinuous
       };
 
       const response = await this.apiCall('/.netlify/functions/settings', {
@@ -887,6 +908,93 @@ class AdminInterface {
       // Reload to restore original order
       await this.loadData();
     }
+  }
+
+  /**
+   * Load footer text lines into dynamic interface
+   */
+  loadFooterTextLines(footerTextSetting) {
+    const container = document.getElementById('footerTextLines');
+    if (!container) return;
+    
+    // Parse the footer text (either || separated string or already an array)
+    let lines = [];
+    if (typeof footerTextSetting === 'string') {
+      lines = footerTextSetting.split('||').filter(line => line.trim());
+    } else if (Array.isArray(footerTextSetting)) {
+      lines = footerTextSetting;
+    }
+    
+    // Default lines if none exist
+    if (lines.length === 0) {
+      lines = [
+        'Investeer in jezelf of in je kind – personal training vanaf €37,50 per les. Begin vandaag nog!',
+        'Interesse? Meld je bij de bar of stuur ons een mailtje.'
+      ];
+    }
+    
+    container.innerHTML = '';
+    lines.forEach((line, index) => {
+      this.addFooterTextLineElement(line.trim(), index);
+    });
+  }
+
+  /**
+   * Add a new footer text line input element
+   */
+  addFooterTextLineElement(value = '', index = null) {
+    const container = document.getElementById('footerTextLines');
+    if (!container) return;
+    
+    const lineIndex = index !== null ? index : container.children.length;
+    
+    const lineDiv = document.createElement('div');
+    lineDiv.className = 'flex items-center space-x-2';
+    lineDiv.innerHTML = `
+      <input type="text" 
+             class="flex-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+             placeholder="Voer footer tekst in..."
+             value="${value}"
+             data-line-index="${lineIndex}">
+      <button type="button" class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-2" 
+              onclick="adminInterface.removeFooterTextLine(this)">
+        <i class="fas fa-trash"></i>
+      </button>
+    `;
+    
+    container.appendChild(lineDiv);
+  }
+
+  /**
+   * Add new empty footer text line
+   */
+  addFooterTextLine() {
+    this.addFooterTextLineElement();
+  }
+
+  /**
+   * Remove a footer text line
+   */
+  removeFooterTextLine(button) {
+    const lineDiv = button.closest('div');
+    if (lineDiv) {
+      lineDiv.remove();
+    }
+  }
+
+  /**
+   * Collect all footer text lines into a string
+   */
+  collectFooterTextLines() {
+    const container = document.getElementById('footerTextLines');
+    if (!container) return '';
+    
+    const inputs = container.querySelectorAll('input[type="text"]');
+    const lines = Array.from(inputs)
+      .map(input => input.value.trim())
+      .filter(line => line.length > 0);
+    
+    return lines.join('||');
   }
 
 }

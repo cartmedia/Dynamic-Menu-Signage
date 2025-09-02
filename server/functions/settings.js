@@ -105,25 +105,30 @@ async function getSettings(client, headers) {
 }
 
 async function updateSettings(client, headers, data) {
-  const { display_columns, header_height, footer_height } = data;
+  const { display_columns, header_height, footer_height, footer_text, footer_speed, footer_continuous } = data;
   
   const updates = [
     { key: 'display_columns', value: display_columns, type: 'number' },
     { key: 'header_height', value: header_height, type: 'number' },
-    { key: 'footer_height', value: footer_height, type: 'number' }
+    { key: 'footer_height', value: footer_height, type: 'number' },
+    { key: 'footer_text', value: footer_text, type: 'string' },
+    { key: 'footer_speed', value: footer_speed, type: 'number' },
+    { key: 'footer_continuous', value: footer_continuous, type: 'boolean' }
   ];
 
   // Update or insert each setting
   for (const update of updates) {
-    await client.query(`
-      INSERT INTO signage_settings (setting_key, setting_value, data_type, active, created_at, updated_at)
-      VALUES ($1, $2, $3, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      ON CONFLICT (setting_key)
-      DO UPDATE SET 
-        setting_value = $2,
-        data_type = $3,
-        updated_at = CURRENT_TIMESTAMP
-    `, [update.key, update.value.toString(), update.type]);
+    if (update.value !== undefined && update.value !== null) {
+      await client.query(`
+        INSERT INTO signage_settings (setting_key, setting_value, data_type, active, created_at, updated_at)
+        VALUES ($1, $2, $3, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT (setting_key)
+        DO UPDATE SET 
+          setting_value = $2,
+          data_type = $3,
+          updated_at = CURRENT_TIMESTAMP
+      `, [update.key, update.value.toString(), update.type]);
+    }
   }
 
   return {

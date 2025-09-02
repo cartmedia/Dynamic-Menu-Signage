@@ -424,15 +424,76 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener("DOMContentLoaded", function () {
   const scrollingTextSpan = document.querySelector(".ScrollingText span");
 
+  // Footer slideshow management
+  let footerSpeed = 30; // Default pixels per second
+  let footerText = "Investeer in jezelf of in je kind – personal training vanaf €37,50 per les. Begin vandaag nog!||Interesse? Meld je bij de bar of stuur ons een mailtje.";
+  let footerContinuous = true; // Default to continuous scrolling
+
+  function updateFooterContent() {
+    if (!scrollingTextSpan) return;
+    
+    // Split text by custom separator and add SVG dividers
+    const textParts = footerText.split('||').filter(part => part.trim());
+    let htmlContent = '';
+    
+    // Create the scrolling content with SVG separators
+    textParts.forEach((part, index) => {
+      htmlContent += part.trim();
+      // Add SVG separator after each part
+      htmlContent += '<img class="sep" src="assets/images/pinas_kroon.svg" alt="" role="presentation" aria-hidden="true" />';
+    });
+    
+    if (footerContinuous) {
+      // Duplicate the content for seamless continuous scrolling
+      scrollingTextSpan.innerHTML = htmlContent + htmlContent;
+    } else {
+      // Single content with natural end/start gap
+      scrollingTextSpan.innerHTML = htmlContent;
+    }
+  }
+
   function setAnimationDuration() {
-    // Get half the width since the text is duplicated
-    const spanWidth = scrollingTextSpan.offsetWidth / 2;
-    // Increase duration to slow down the scroll (higher = slower)
-    const duration = (spanWidth / 30) * 0.6; // footer scroll speed
+    if (!scrollingTextSpan) return;
+    
+    let spanWidth = scrollingTextSpan.offsetWidth;
+    
+    if (footerContinuous) {
+      // Get half the width since the text is duplicated for seamless loop
+      spanWidth = spanWidth / 2;
+    }
+    
+    // Calculate duration based on speed setting (pixels per second)
+    const duration = spanWidth / footerSpeed;
     scrollingTextSpan.style.animationDuration = duration + "s";
   }
 
+  // Load footer settings from CMS
+  async function loadFooterSettings() {
+    if (displaySettings && displaySettings.settings) {
+      footerSpeed = parseInt(displaySettings.settings.footer_speed) || 30;
+      footerText = displaySettings.settings.footer_text || footerText;
+      footerContinuous = displaySettings.settings.footer_continuous !== false; // Default to true
+      
+      console.log(`Footer settings loaded - Speed: ${footerSpeed}px/s, Continuous: ${footerContinuous}, Text: ${footerText.substring(0, 50)}...`);
+      
+      updateFooterContent();
+      setAnimationDuration();
+    }
+  }
+
+  // Initial setup
+  updateFooterContent();
   setAnimationDuration();
+
+  // Load settings when available
+  if (displaySettings) {
+    displaySettings.loadSettings().then(() => {
+      loadFooterSettings();
+    });
+  } else {
+    // Fallback if displaySettings not available
+    setTimeout(loadFooterSettings, 1000);
+  }
 
   // Restart the animation when it ends to simulate an infinite scroll
   scrollingTextSpan.addEventListener("animationiteration", () => {
