@@ -25,12 +25,11 @@ class CMSConnector {
   async getProducts() {
     const cacheKey = 'products';
     
-    // Try cache first (disabled for debugging)
-    console.log('Cache disabled for debugging - loading fresh data');
-    // if (this.config.cache.enabled && this.isCacheValid(cacheKey)) {
-    //   console.log('Loading products from cache');
-    //   return this.getFromCache(cacheKey);
-    // }
+    // Try cache first
+    if (this.config.cache.enabled && this.isCacheValid(cacheKey)) {
+      console.log('Loading products from cache - fast load!');
+      return this.getFromCache(cacheKey);
+    }
 
     // Try CMS API if online
     if (this.isOnline) {

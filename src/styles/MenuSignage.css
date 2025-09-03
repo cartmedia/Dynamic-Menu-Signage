@@ -1,3 +1,62 @@
+/* Loading Screen */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #1e1e1e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.5s ease-out;
+}
+
+.loading-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-content {
+  text-align: center;
+  animation: fadeIn 0.8s ease-in;
+}
+
+.loading-logo {
+  width: 8vh;
+  height: 8vh;
+  margin-bottom: 3vh;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.loading-text {
+  font-size: 4vh;
+  color: #c19d6c;
+  margin-bottom: 3vh;
+  letter-spacing: 0.1em;
+}
+
+.loading-spinner {
+  width: 4vh;
+  height: 4vh;
+  border: 0.3vh solid rgba(193, 157, 108, 0.3);
+  border-top: 0.3vh solid #c19d6c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2vh); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 body {
   /* Team Pinas Background with dark overlay */
   background: linear-gradient(rgba(16, 16, 16, 0.6), rgba(16, 16, 16, 0.6)),

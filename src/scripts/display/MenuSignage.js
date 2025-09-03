@@ -138,10 +138,19 @@ document.addEventListener("DOMContentLoaded", function () {
   const PRIMARY_SLOT = SLOTS[0]; // Now points to slot 1
   let ROTATE_INTERVAL_MS = 6000; // Default, will be updated from settings
   
-  // Update rotation interval from settings
-  displaySettings.loadSettings().then(() => {
-    ROTATE_INTERVAL_MS = parseInt(displaySettings.settings.rotation_interval) || 6000;
-    console.log(`Updated rotation interval to ${ROTATE_INTERVAL_MS}ms`);
+  // Load settings and products in parallel for faster initialization
+  const initPromises = [
+    displaySettings.loadSettings().then(() => {
+      ROTATE_INTERVAL_MS = parseInt(displaySettings.settings.rotation_interval) || 6000;
+      console.log(`Updated rotation interval to ${ROTATE_INTERVAL_MS}ms`);
+    }),
+    // Products will be loaded by setupAndInit() 
+  ];
+
+  Promise.all(initPromises).then(() => {
+    console.log('⚡ Parallel initialization complete');
+  }).catch(error => {
+    console.warn('Some initialization failed, continuing anyway:', error);
   });
 
   // Strip technical prefixes from names (e.g., "A Cola" -> "Cola")
@@ -380,6 +389,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // initial render
       renderDynamicSlots();
+
+      // Hide loading screen after initial render
+      setTimeout(() => {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+          loadingScreen.classList.add('fade-out');
+          setTimeout(() => loadingScreen.remove(), 500);
+          console.log('🚀 Initial load complete - loading screen hidden');
+        }
+      }, 100);
 
       // Re-measure once web fonts have finished loading (prevents underestimation)
       if (document.fonts && document.fonts.ready) {
