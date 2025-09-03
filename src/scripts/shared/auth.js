@@ -42,8 +42,20 @@ class AuthManager {
       const storedApiKey = localStorage.getItem('admin_api_key');
       const keyExpiry = localStorage.getItem('admin_key_expiry');
       
-      if (storedApiKey && keyExpiry && new Date().getTime() < parseInt(keyExpiry)) {
-        this.apiKey = storedApiKey;
+      // Auto-login with default API key for localhost development
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      
+      if (isLocalhost && (!storedApiKey || !keyExpiry || new Date().getTime() >= parseInt(keyExpiry))) {
+        console.log('🔧 Auto-authenticating with default API key for localhost development');
+        localStorage.setItem('admin_api_key', 'team-pinas-admin-2024');
+        localStorage.setItem('admin_key_expiry', (new Date().getTime() + 24 * 60 * 60 * 1000).toString());
+      }
+      
+      const currentApiKey = localStorage.getItem('admin_api_key');
+      const currentExpiry = localStorage.getItem('admin_key_expiry');
+      
+      if (currentApiKey && currentExpiry && new Date().getTime() < parseInt(currentExpiry)) {
+        this.apiKey = currentApiKey;
         this.isAuthenticated = true;
         this.user = {
           email: 'admin@teampinas.nl',

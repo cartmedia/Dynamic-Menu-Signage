@@ -34,6 +34,9 @@ class AdminInterface {
     await this.loadData();
     await this.loadDisplaySettings();
     this.updateStats();
+    
+    // Handle initial tab based on URL parameters
+    this.handleInitialTab();
   }
 
   setupEventListeners() {
@@ -103,6 +106,14 @@ class AdminInterface {
     safeAddEventListener('categoryFilter', 'change', (e) => {
       this.filterProducts(e.target.value);
     });
+
+    // Data overview refresh button
+    safeAddEventListener('refreshDataOverview', 'click', () => {
+      this.refreshDataOverview();
+    });
+
+    // Tab navigation functionality
+    this.setupTabNavigation();
 
     // Close modals on background click
     ['categoryModal', 'productModal'].forEach(modalId => {
@@ -1067,6 +1078,321 @@ class AdminInterface {
       .filter(line => line.length > 0);
     
     return lines.join('||');
+  }
+
+  /**
+   * Refresh data overview table with all menu data
+   */
+  async refreshDataOverview() {
+    try {
+      console.log('Refreshing data overview...');
+      
+      // Show loading state
+      const tableBody = document.getElementById('dataOverviewBody');
+      if (!tableBody) {
+        console.error('Data overview table body not found');
+        return;
+      }
+      
+      tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Loading...</td></tr>';
+      
+      // Fetch real data from admin endpoints to get actual database values
+      const [categoriesResponse, productsResponse] = await Promise.all([
+        this.apiCall('/.netlify/functions/admin-categories'),
+        this.apiCall('/.netlify/functions/admin-products')
+      ]);
+      
+      if (!categoriesResponse.ok || !productsResponse.ok) {
+        throw new Error('Failed to load admin data');
+      }
+      
+      const categoriesData = await categoriesResponse.json();
+      const productsData = await productsResponse.json();
+      
+      console.log('Data overview categories:', categoriesData);
+      console.log('Data overview products:', productsData);
+      
+      this.populateDataOverviewTableFromAdmin(categoriesData, productsData);
+      
+    } catch (error) {
+      console.error('Error refreshing data overview:', error);
+      const tableBody = document.getElementById('dataOverviewBody');
+      if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-600">Error loading data</td></tr>';
+      }
+    }
+  }
+
+  /**
+   * Populate the data overview table with admin data (real database data)
+   */
+  populateDataOverviewTableFromAdmin(categoriesData, productsData) {
+    const tableBody = document.getElementById('dataOverviewBody');
+    if (!tableBody) return;
+    
+    let html = '';
+    const categories = categoriesData.categories || [];
+    const products = productsData.products || [];
+    
+    if (categories.length === 0) {
+      html = '<tr><td colspan="7" class="text-center py-4">No categories available</td></tr>';
+    } else {
+      categories.forEach((category, categoryIndex) => {
+        // Get products for this category
+        const categoryProducts = products.filter(p => p.category_id === category.id);
+        const categoryDisplayOrder = category.display_order !== undefined ? category.display_order : 'Not set';
+        const categoryStatus = category.active ? 'Active' : 'Inactive';
+        
+        if (categoryProducts.length === 0) {
+          // Category with no products
+          html += `
+            <tr class="bg-gray-50 dark:bg-gray-800">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                ${this.escapeHtml(category.name)}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" colspan="6">
+                No products
+              </td>
+            </tr>
+          `;
+        } else {
+          // Category with products
+          categoryProducts.forEach((product, productIndex) => {
+            const showCategoryName = productIndex === 0;
+            const productDisplayOrder = product.display_order !== undefined ? product.display_order : 'Not set';
+            const productStatus = product.active ? 'Active' : 'Inactive';
+            
+            // Create badges array from actual database values
+            const badges = [];
+            if (product.on_sale === true) badges.push('AANBIEDING');
+            if (product.is_new === true) badges.push('NIEUW');
+            const badgesText = badges.length > 0 ? badges.join(', ') : 'None';
+            
+            html += `
+              <tr class="${productIndex % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                  ${showCategoryName ? this.escapeHtml(category.name) : ''}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  ${this.escapeHtml(product.name)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  €${parseFloat(product.price).toFixed(2)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  ${productDisplayOrder}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${productStatus === 'Active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}">
+                    ${productStatus}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  ${badgesText}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  Database
+                </td>
+              </tr>
+            `;
+          });
+        }
+      });
+    }
+    
+    tableBody.innerHTML = html;
+    console.log('Data overview table populated with admin data successfully');
+  }
+
+  /**
+   * Populate the data overview table with menu data (legacy - for public API)
+   */
+  populateDataOverviewTable(data) {
+    const tableBody = document.getElementById('dataOverviewBody');
+    if (!tableBody) return;
+    
+    let html = '';
+    
+    if (!data.categories || data.categories.length === 0) {
+      html = '<tr><td colspan="7" class="text-center py-4">No data available</td></tr>';
+    } else {
+      data.categories.forEach((category, categoryIndex) => {
+        const categoryDisplayOrder = category.display_order || 'Not set';
+        const categoryStatus = 'Active'; // Categories in API response are active
+        
+        if (!category.items || category.items.length === 0) {
+          // Category with no items
+          html += `
+            <tr class="bg-gray-50 dark:bg-gray-800">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                ${this.escapeHtml(category.title)}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" colspan="6">
+                No products
+              </td>
+            </tr>
+          `;
+        } else {
+          // Category with products
+          category.items.forEach((product, productIndex) => {
+            const showCategoryName = productIndex === 0;
+            const productDisplayOrder = product.display_order || 'Not set';
+            const productStatus = 'Active'; // Products in API response are active
+            
+            // Create badges array
+            const badges = [];
+            if (product.on_sale) badges.push('AANBIEDING');
+            if (product.is_new) badges.push('NIEUW');
+            const badgesText = badges.length > 0 ? badges.join(', ') : 'None';
+            
+            html += `
+              <tr class="${productIndex % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                  ${showCategoryName ? this.escapeHtml(category.title) : ''}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  ${this.escapeHtml(product.name)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  €${parseFloat(product.price).toFixed(2)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  ${productDisplayOrder}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    ${productStatus}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  ${badgesText}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  ${data.source || 'API'}
+                </td>
+              </tr>
+            `;
+          });
+        }
+      });
+    }
+    
+    tableBody.innerHTML = html;
+    console.log('Data overview table populated successfully');
+  }
+
+  /**
+   * Setup tab navigation functionality
+   */
+  setupTabNavigation() {
+    const tabButtons = document.querySelectorAll('.admin-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    // Add click listeners to tab buttons
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const targetTab = button.getAttribute('data-tab');
+        this.switchToTab(targetTab);
+      });
+    });
+    
+    console.log('Tab navigation setup complete');
+  }
+
+  /**
+   * Switch to a specific tab
+   */
+  switchToTab(targetTab) {
+    // Update tab buttons
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+      tab.classList.remove('active');
+      tab.setAttribute('aria-selected', 'false');
+    });
+    
+    // Activate target tab button
+    const targetButton = document.querySelector(`[data-tab="${targetTab}"]`);
+    if (targetButton) {
+      targetButton.classList.add('active');
+      targetButton.setAttribute('aria-selected', 'true');
+    }
+    
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.add('hidden');
+    });
+    
+    // Show target tab content
+    const targetContent = document.getElementById(`${targetTab}-tab`);
+    if (targetContent) {
+      targetContent.classList.remove('hidden');
+    }
+    
+    console.log(`Switched to tab: ${targetTab}`);
+    
+    // Trigger specific actions when switching to certain tabs
+    this.onTabSwitch(targetTab);
+  }
+
+  /**
+   * Handle tab-specific actions when switching
+   */
+  onTabSwitch(tabName) {
+    // Update URL without refreshing page
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tabName);
+    window.history.replaceState({}, '', url);
+    
+    switch(tabName) {
+      case 'dashboard':
+        // Refresh stats when returning to dashboard
+        this.updateStats();
+        break;
+      case 'data':
+        // Auto-refresh data overview when switching to data tab
+        setTimeout(() => this.refreshDataOverview(), 300);
+        break;
+      case 'menu':
+        // Ensure latest data is shown
+        this.renderCategories();
+        this.renderProducts();
+        break;
+      case 'settings':
+        // Reload display settings
+        this.loadDisplaySettings();
+        break;
+    }
+  }
+
+  /**
+   * Handle initial tab based on URL parameters
+   */
+  handleInitialTab() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabFromUrl = urlParams.get('tab');
+    
+    // Valid tabs
+    const validTabs = ['dashboard', 'menu', 'settings', 'data'];
+    
+    if (tabFromUrl && validTabs.includes(tabFromUrl)) {
+      this.switchToTab(tabFromUrl);
+    } else {
+      // Default to dashboard
+      this.switchToTab('dashboard');
+    }
+  }
+
+  /**
+   * Escape HTML to prevent XSS
+   */
+  escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
   }
 
 }
