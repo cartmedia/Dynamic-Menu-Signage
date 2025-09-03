@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Pinas Signage Admin</title>
     <script src="https://cdn.tailwindcss.com/3.4.0"></script>
+    <script>
+        // Suppress Tailwind CDN production warning
+        if (typeof window !== 'undefined') {
+            const originalWarn = console.warn;
+            console.warn = function(...args) {
+                if (args[0] && args[0].includes && args[0].includes('cdn.tailwindcss.com should not be used in production')) {
+                    return; // Suppress this specific warning
+                }
+                originalWarn.apply(console, args);
+            };
+        }
+    </script>
     <!-- Auth0 SPA SDK (used when Auth0 is configured) -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js" defer></script>
     <script>
@@ -623,21 +635,28 @@
             // Initialize dark mode
             initDarkMode();
             
-            // Initialize default footer lines if container is empty
-            const container = document.getElementById('footerTextLines');
-            if (container && container.children.length === 0) {
-                addFooterLineHelper();
-                const firstInput = container.querySelector('input');
-                if (firstInput) {
-                    firstInput.value = 'Investeer in jezelf of in je kind – personal training vanaf €37,50 per les. Begin vandaag nog!';
+            // Only initialize default footer lines if AdminInterface is not available
+            setTimeout(() => {
+                if (!window.adminInterface) {
+                    const container = document.getElementById('footerTextLines');
+                    if (container && container.children.length === 0) {
+                        console.log('AdminInterface not available, using fallback footer initialization');
+                        addFooterLineHelper();
+                        const firstInput = container.querySelector('input');
+                        if (firstInput) {
+                            firstInput.value = 'Investeer in jezelf of in je kind – personal training vanaf €37,50 per les. Begin vandaag nog!';
+                        }
+                        
+                        addFooterLineHelper();
+                        const secondInput = container.querySelectorAll('input')[1];
+                        if (secondInput) {
+                            secondInput.value = 'Interesse? Meld je bij de bar of stuur ons een mailtje.';
+                        }
+                    }
+                } else {
+                    console.log('AdminInterface available, skipping fallback footer initialization');
                 }
-                
-                addFooterLineHelper();
-                const secondInput = container.querySelectorAll('input')[1];
-                if (secondInput) {
-                    secondInput.value = 'Interesse? Meld je bij de bar of stuur ons een mailtje.';
-                }
-            }
+            }, 1000); // Wait for AdminInterface to load
             
             // Initialize login form
             const loginForm = document.getElementById('loginForm');
