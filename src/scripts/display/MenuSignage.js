@@ -1,3 +1,22 @@
+// Debug Mode Implementation - check if debug is enabled
+let debugMode = localStorage.getItem('debugMode') === 'true';
+let originalConsole = {
+  log: console.log,
+  warn: console.warn,
+  error: console.error,
+  info: console.info,
+  debug: console.debug
+};
+
+// Apply debug mode on page load
+if (!debugMode) {
+  console.log = () => {};
+  console.warn = () => {};
+  console.info = () => {};
+  console.debug = () => {};
+  // Keep console.error for critical issues
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   // Getting the span element
   var dayTitleSpan = document.getElementById("DayTitle");

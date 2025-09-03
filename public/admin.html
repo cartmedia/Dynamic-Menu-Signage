@@ -184,6 +184,10 @@
                     </h1>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <!-- Debug Toggle -->
+                    <button id="debugToggle" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Toggle Debug Logs">
+                        <i class="fas fa-bug text-muted-foreground text-sm"></i>
+                    </button>
                     <!-- Dark Mode Toggle -->
                     <button id="darkModeToggle" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Toggle Dark Mode">
                         <i class="fas fa-moon text-muted-foreground text-sm"></i>
@@ -558,6 +562,75 @@
     <script type="module" src="/src/scripts/shared/auth.js"></script>
     <script type="module" src="/src/scripts/admin/admin.js"></script>
     <script>
+        // Debug Mode Implementation
+        let debugMode = localStorage.getItem('debugMode') === 'true';
+        let originalConsole = {};
+        
+        function initDebugMode() {
+            const debugToggle = document.getElementById('debugToggle');
+            const debugIcon = debugToggle?.querySelector('i');
+            
+            if (!debugToggle || !debugIcon) return;
+            
+            // Store original console methods
+            originalConsole = {
+                log: console.log,
+                warn: console.warn,
+                error: console.error,
+                info: console.info,
+                debug: console.debug
+            };
+            
+            // Apply current debug mode state
+            applyDebugMode();
+            
+            // Debug toggle event listener
+            debugToggle.addEventListener('click', () => {
+                debugMode = !debugMode;
+                localStorage.setItem('debugMode', debugMode.toString());
+                applyDebugMode();
+                
+                // Show feedback message
+                if (debugMode) {
+                    originalConsole.log('🐛 Debug mode enabled - Console logs are now visible');
+                } else {
+                    originalConsole.log('🔇 Debug mode disabled - Console logs are now hidden');
+                }
+            });
+        }
+        
+        function applyDebugMode() {
+            const debugToggle = document.getElementById('debugToggle');
+            const debugIcon = debugToggle?.querySelector('i');
+            
+            if (!debugIcon) return;
+            
+            if (debugMode) {
+                // Enable debug mode - restore console methods
+                console.log = originalConsole.log;
+                console.warn = originalConsole.warn;
+                console.error = originalConsole.error;
+                console.info = originalConsole.info;
+                console.debug = originalConsole.debug;
+                
+                // Update button appearance
+                debugIcon.className = 'fas fa-bug text-green-600 dark:text-green-400 text-sm';
+                debugToggle.title = 'Debug Logs: ON (Click to disable)';
+            } else {
+                // Disable debug mode - replace console methods with no-ops
+                console.log = () => {};
+                console.warn = () => {};
+                console.info = () => {};
+                console.debug = () => {};
+                // Keep console.error for critical issues
+                console.error = originalConsole.error;
+                
+                // Update button appearance
+                debugIcon.className = 'fas fa-bug text-muted-foreground text-sm';
+                debugToggle.title = 'Debug Logs: OFF (Click to enable)';
+            }
+        }
+
         // Dark Mode Implementation
         function initDarkMode() {
             const darkModeToggle = document.getElementById('darkModeToggle');
@@ -632,6 +705,9 @@
 
         // Initialize components after DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize debug mode
+            initDebugMode();
+            
             // Initialize dark mode
             initDarkMode();
             
