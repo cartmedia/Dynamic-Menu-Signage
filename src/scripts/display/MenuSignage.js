@@ -178,11 +178,21 @@ document.addEventListener("DOMContentLoaded", function () {
     let itemsHtml = '<div class="MenuItemsContainer">';
     const list = Array.isArray(itemsOverride) ? itemsOverride : (category.items || []);
     list.forEach((it) => {
-      const onSaleClass = it.on_sale ? ' on-sale' : '';
-      const saleBadge = it.on_sale ? '<span class="sale-badge">Aanbieding</span>' : '';
+      // CSS classes for special styling
+      const specialClasses = [];
+      if (it.on_sale) specialClasses.push('on-sale');
+      if (it.is_new) specialClasses.push('is-new');
+      const itemClass = specialClasses.length > 0 ? ` ${specialClasses.join(' ')}` : '';
+      
+      // Badge elements
+      const badges = [];
+      if (it.on_sale) badges.push('<span class="sale-badge">Aanbieding</span>');
+      if (it.is_new) badges.push('<span class="new-badge">Nieuw</span>');
+      const badgesHtml = badges.join('');
+      
       itemsHtml += `
-        <div class="MenuItem${onSaleClass}">
-          <div class="MenuItemType">${cleanName(it.name)}${saleBadge}</div>
+        <div class="MenuItem${itemClass}">
+          <div class="MenuItemType">${cleanName(it.name)}${badgesHtml}</div>
           <div class="MenuFoodItem">${euro(it.price)}</div>
         </div>
       `;

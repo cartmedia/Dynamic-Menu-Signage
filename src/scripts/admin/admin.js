@@ -244,6 +244,7 @@ class AdminInterface {
                 ${product.active ? 'Actief' : 'Inactief'}
               </span>
               ${product.on_sale ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">🏷️ Aanbieding</span>' : ''}
+              ${product.is_new ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">✨ Nieuw</span>' : ''}
             </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -507,11 +508,13 @@ class AdminInterface {
       document.getElementById('productOrder').value = product.display_order;
       document.getElementById('productActive').checked = product.active;
       document.getElementById('productOnSale').checked = product.on_sale || false;
+      document.getElementById('productIsNew').checked = product.is_new || false;
     } else {
       title.textContent = 'Nieuw Product';
       document.getElementById('productForm').reset();
       document.getElementById('productActive').checked = true;
       document.getElementById('productOnSale').checked = false;
+      document.getElementById('productIsNew').checked = false;
     }
     
     modal.classList.remove('hidden');
@@ -530,6 +533,7 @@ class AdminInterface {
     const order = parseInt(document.getElementById('productOrder').value);
     const active = document.getElementById('productActive').checked;
     const onSale = document.getElementById('productOnSale').checked;
+    const isNew = document.getElementById('productIsNew').checked;
 
     if (!name || !categoryId || isNaN(price)) {
       this.showToast('Naam, categorie en prijs zijn verplicht', 'error');
@@ -544,7 +548,8 @@ class AdminInterface {
         description,
         display_order: order,
         active,
-        on_sale: onSale
+        on_sale: onSale,
+        is_new: isNew
       };
 
       let response;

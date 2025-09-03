@@ -142,6 +142,21 @@ body {
   border-radius: 0.3rem;
 }
 
+.MenuItem.is-new {
+  /* Highlight background for new items */
+  background-color: rgba(34, 197, 94, 0.1); /* Subtle green background */
+  border-left: 3px solid #22c55e; /* Fresh green accent */
+  padding-left: 1vh; /* Add padding for border */
+  border-radius: 0.3rem;
+}
+
+.MenuItem.on-sale.is-new {
+  /* Both sale and new - combine both effects */
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 50%, rgba(34, 197, 94, 0.1) 50%);
+  border-left: 3px solid;
+  border-image: linear-gradient(45deg, #c19d6c, #22c55e) 1;
+}
+
 .MenuItemType {
   flex: 1;
   font-family: "coolvetica", sans-serif;
@@ -169,9 +184,39 @@ body {
   animation: pulse 2s ease-in-out infinite;
 }
 
+.new-badge {
+  display: inline-block;
+  background: linear-gradient(45deg, #22c55e, #16a34a);
+  color: #ffffff;
+  font-size: 1.8vh;
+  font-weight: bold;
+  padding: 0.3vh 0.8vh;
+  border-radius: 0.8vh;
+  margin-left: 1vh;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  animation: sparkle 3s ease-in-out infinite;
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.8; }
+}
+
+@keyframes sparkle {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+  25% { 
+    opacity: 0.9; 
+    transform: scale(1.05);
+  }
+  75% { 
+    opacity: 0.95; 
+    transform: scale(1.02);
+  }
 }
 
 .MenuFoodItem {
