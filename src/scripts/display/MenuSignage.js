@@ -484,15 +484,26 @@ document.addEventListener("DOMContentLoaded", function () {
       htmlContent += '<img class="sep" src="assets/images/pinas_kroon.svg" alt="" role="presentation" aria-hidden="true" />';
     });
     
-    // Always use single content - the new CSS animation handles continuous scrolling naturally
-    scrollingTextSpan.innerHTML = htmlContent;
+    if (footerContinuous) {
+      // Voor echte continue scrolling: dupliceer de content
+      // Zo begint de tweede cyclus al wanneer de eerste nog niet helemaal weg is
+      scrollingTextSpan.innerHTML = htmlContent + htmlContent;
+    } else {
+      // Discrete mode: enkele content met natuurlijke pauze
+      scrollingTextSpan.innerHTML = htmlContent;
+    }
   }
 
   function setAnimationDuration() {
     if (!scrollingTextSpan) return;
     
     const containerWidth = scrollingTextSpan.parentElement.offsetWidth;
-    const spanWidth = scrollingTextSpan.offsetWidth;
+    let spanWidth = scrollingTextSpan.offsetWidth;
+    
+    if (footerContinuous && spanWidth > 0) {
+      // In continue modus is de content gedupliceerd, dus we gebruiken de helft
+      spanWidth = spanWidth / 2;
+    }
     
     // Calculate total distance: text width + container width (for smooth entry/exit)
     const totalDistance = spanWidth + containerWidth;
