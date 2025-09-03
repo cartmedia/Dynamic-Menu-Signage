@@ -485,12 +485,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     
     if (footerContinuous) {
-      // Voor echte continue scrolling: dupliceer de content
-      // Zo begint de tweede cyclus al wanneer de eerste nog niet helemaal weg is
-      scrollingTextSpan.innerHTML = htmlContent + htmlContent;
+      // Voor echte continue scrolling: dupliceer de content met extra spacing
+      scrollingTextSpan.innerHTML = htmlContent + ' ' + htmlContent;
+      scrollingTextSpan.style.animationName = 'scrollTextContinuous';
     } else {
       // Discrete mode: enkele content met natuurlijke pauze
       scrollingTextSpan.innerHTML = htmlContent;
+      scrollingTextSpan.style.animationName = 'scrollTextDiscrete';
     }
   }
 
@@ -500,17 +501,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const containerWidth = scrollingTextSpan.parentElement.offsetWidth;
     let spanWidth = scrollingTextSpan.offsetWidth;
     
-    if (footerContinuous && spanWidth > 0) {
-      // In continue modus is de content gedupliceerd, dus we gebruiken de helft
-      spanWidth = spanWidth / 2;
-    }
+    let totalDistance;
     
-    // Calculate total distance: text width + container width (for smooth entry/exit)
-    const totalDistance = spanWidth + containerWidth;
+    if (footerContinuous && spanWidth > 0) {
+      // Continue: van 100% naar -50% = 150% van container breedte
+      // Maar we gebruiken halve span breedte omdat content gedupliceerd is
+      spanWidth = spanWidth / 2;
+      totalDistance = containerWidth + (spanWidth / 2); // 100% + 50% van de echte content
+    } else {
+      // Discrete: van 100% naar -100% = 200% van container breedte  
+      totalDistance = spanWidth + (2 * containerWidth); // Volledige span + 200% container
+    }
     
     // Calculate duration based on speed setting (pixels per second)
     const duration = totalDistance / footerSpeed;
     scrollingTextSpan.style.animationDuration = duration + "s";
+    
+    console.log(`Animation: ${footerContinuous ? 'continuous' : 'discrete'}, spanWidth: ${spanWidth}px, containerWidth: ${containerWidth}px, totalDistance: ${totalDistance}px, duration: ${duration}s`);
   }
 
   // Load footer settings from CMS

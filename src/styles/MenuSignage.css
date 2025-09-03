@@ -300,12 +300,21 @@ hr {
   width: 100%;
 }
 
-@keyframes scrollText {
+@keyframes scrollTextContinuous {
   0% {
-    transform: translateX(0);
+    transform: translateX(100%);
   }
   100% {
     transform: translateX(-50%);
+  }
+}
+
+@keyframes scrollTextDiscrete {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
   }
 }
 
