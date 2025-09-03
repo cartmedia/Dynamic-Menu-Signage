@@ -27,6 +27,7 @@ exports.handler = async (event, context) => {
       domain: process.env.AUTH0_DOMAIN || null,
       clientId: process.env.AUTH0_CLIENT_ID || null,
       audience: process.env.AUTH0_AUDIENCE || 'team-pinas-admin',
+      // Check if we're in development or if Auth0 isn't properly configured
       developmentMode: !process.env.AUTH0_DOMAIN || !process.env.AUTH0_CLIENT_ID
     };
 
