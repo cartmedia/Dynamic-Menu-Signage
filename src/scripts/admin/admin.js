@@ -1819,6 +1819,10 @@ class AdminInterface {
    * Bulk activate all products
    */
   async bulkActivateProducts() {
+    if (!confirm(`Weet je zeker dat je alle ${this.products.length} producten wilt activeren?`)) {
+      return;
+    }
+
     try {
       const updates = this.products.map(product => 
         this.apiCall(`/.netlify/functions/admin-products?id=${product.id}`, {
@@ -1843,6 +1847,10 @@ class AdminInterface {
    * Bulk deactivate all products
    */
   async bulkDeactivateProducts() {
+    if (!confirm(`Weet je zeker dat je alle ${this.products.length} producten wilt deactiveren?`)) {
+      return;
+    }
+
     try {
       const updates = this.products.map(product => 
         this.apiCall(`/.netlify/functions/admin-products?id=${product.id}`, {
@@ -1867,7 +1875,7 @@ class AdminInterface {
    * Bulk remove all labels from products
    */
   async bulkRemoveLabels() {
-    if (!confirm('Weet je zeker dat je alle labels van alle producten wilt verwijderen?')) {
+    if (!confirm(`Weet je zeker dat je alle labels van alle ${this.products.length} producten wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`)) {
       return;
     }
 
