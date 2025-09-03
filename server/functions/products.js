@@ -52,7 +52,10 @@ exports.handler = async (event, context) => {
           json_agg(
             json_build_object(
               'name', p.name,
-              'price', p.price
+              'price', p.price,
+              'display_order', p.display_order,
+              'on_sale', p.on_sale,
+              'is_new', p.is_new
             ) ORDER BY p.display_order, p.name
           ) as items
         FROM categories c
@@ -67,6 +70,7 @@ exports.handler = async (event, context) => {
       // Transform to expected format
       const categories = result.rows.map(row => ({
         title: row.category_title,
+        display_order: row.display_order,
         items: row.items.filter(item => item.name !== null) // Remove null products
       })).filter(category => category.items.length > 0); // Remove empty categories
 
