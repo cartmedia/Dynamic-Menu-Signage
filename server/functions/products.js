@@ -54,18 +54,26 @@ exports.handler = async (event, context) => {
               'name', p.name,
               'price', p.price,
               'display_order', p.display_order,
-              'on_sale', p.on_sale,
-              'is_new', p.is_new
-            ) ORDER BY p.display_order, p.name
+              'on_sale', COALESCE(p.on_sale, false),
+              'is_new', COALESCE(p.is_new, false)
+            ) ORDER BY COALESCE(p.display_order, 999), p.name
           ) as items
         FROM categories c
         LEFT JOIN products p ON c.id = p.category_id 
         WHERE c.active = true AND (p.active = true OR p.active IS NULL)
         GROUP BY c.id, c.name, c.display_order
-        ORDER BY c.display_order, c.name
+        ORDER BY COALESCE(c.display_order, 999), c.name
       `;
 
+      console.log('Executing categories query...');
       const result = await client.query(categoriesQuery);
+      console.log(`Query returned ${result.rows.length} categories`);
+      
+      if (result.rows.length === 0) {
+        console.warn('No categories found in database!');
+      } else {
+        console.log('Category names:', result.rows.map(r => r.category_title));
+      }
       
       // Transform to expected format
       const categories = result.rows.map(row => ({
@@ -93,28 +101,72 @@ exports.handler = async (event, context) => {
   } catch (error) {
     console.error('Database error:', error);
     
-    // Return working fallback data instead of 500 error
+    // Return comprehensive fallback data instead of 500 error
     const fallbackData = {
       categories: [
         {
           title: "Shakes & Supplementen",
           display_order: 1,
           items: [
-            { name: "Protein Shake", price: 4.50, display_order: 1, on_sale: false, is_new: false },
-            { name: "Whey Protein", price: 3.75, display_order: 2, on_sale: true, is_new: false }
+            { name: "Protein Shake Vanille", price: 4.50, display_order: 1, on_sale: true, is_new: false },
+            { name: "Whey Protein Chocolade", price: 4.25, display_order: 2, on_sale: false, is_new: true },
+            { name: "Massa Gainer", price: 5.00, display_order: 3, on_sale: false, is_new: false },
+            { name: "Creatine Monohydraat", price: 2.75, display_order: 4, on_sale: true, is_new: false }
           ]
         },
         {
           title: "Snacks",
           display_order: 2,
           items: [
-            { name: "Protein Bar", price: 2.50, display_order: 1, on_sale: false, is_new: true },
-            { name: "Energy Nuts", price: 1.75, display_order: 2, on_sale: false, is_new: false }
+            { name: "Protein Bar Cookies", price: 2.50, display_order: 1, on_sale: false, is_new: true },
+            { name: "Energy Nuts Mix", price: 1.75, display_order: 2, on_sale: true, is_new: false },
+            { name: "Beef Jerky", price: 3.25, display_order: 3, on_sale: false, is_new: false },
+            { name: "Gezonde Muesli Reep", price: 2.00, display_order: 4, on_sale: false, is_new: false }
+          ]
+        },
+        {
+          title: "Koude Dranken",
+          display_order: 3,
+          items: [
+            { name: "Cola Zero", price: 2.00, display_order: 1, on_sale: false, is_new: false },
+            { name: "Sportdrank Citroen", price: 2.25, display_order: 2, on_sale: true, is_new: false },
+            { name: "Water Plat", price: 1.50, display_order: 3, on_sale: false, is_new: false },
+            { name: "Ijsthee Perzik", price: 2.50, display_order: 4, on_sale: false, is_new: true }
+          ]
+        },
+        {
+          title: "Warme Dranken",
+          display_order: 4,
+          items: [
+            { name: "Espresso", price: 1.75, display_order: 1, on_sale: false, is_new: false },
+            { name: "Cappuccino", price: 2.25, display_order: 2, on_sale: false, is_new: false },
+            { name: "Thee Earl Grey", price: 2.00, display_order: 3, on_sale: true, is_new: false },
+            { name: "Warme Chocolademelk", price: 2.75, display_order: 4, on_sale: false, is_new: false }
+          ]
+        },
+        {
+          title: "Energy & Sportdrank",
+          display_order: 5,
+          items: [
+            { name: "Red Bull", price: 2.75, display_order: 1, on_sale: false, is_new: false },
+            { name: "Monster Energy", price: 2.50, display_order: 2, on_sale: true, is_new: false },
+            { name: "PowerAde", price: 2.25, display_order: 3, on_sale: false, is_new: false },
+            { name: "Pre-Workout", price: 3.50, display_order: 4, on_sale: false, is_new: true }
+          ]
+        },
+        {
+          title: "Broodjes & Warm",
+          display_order: 6,
+          items: [
+            { name: "Broodje Gezond", price: 4.50, display_order: 1, on_sale: true, is_new: false },
+            { name: "Tosti Ham/Kaas", price: 3.75, display_order: 2, on_sale: false, is_new: false },
+            { name: "Wrap Kip Caesar", price: 5.25, display_order: 3, on_sale: false, is_new: true },
+            { name: "Omelet Naturel", price: 4.00, display_order: 4, on_sale: false, is_new: false }
           ]
         }
       ],
       lastUpdated: new Date().toISOString(),
-      source: 'fallback-emergency'
+      source: 'fallback-comprehensive'
     };
     
     return {
