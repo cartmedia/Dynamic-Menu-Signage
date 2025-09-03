@@ -453,7 +453,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Footer slideshow management
   let footerSpeed = 30; // Default pixels per second
-  let footerText = "Investeer in jezelf of in je kind – personal training vanaf €37,50 per les. Begin vandaag nog!||Interesse? Meld je bij de bar of stuur ons een mailtje.";
+  let footerText = ""; // No fallback content - only show footer if database has content
   let footerContinuous = true; // Default to continuous scrolling
 
   function updateFooterContent() {
@@ -519,10 +519,9 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log('displaySettings:', displaySettings);
     console.log('displaySettings.settings:', displaySettings?.settings);
     
-    if (displaySettings && displaySettings.settings) {
-      const oldFooterText = footerText;
+    if (displaySettings && displaySettings.settings && displaySettings.settings.footer_text) {
       footerSpeed = parseInt(displaySettings.settings.footer_speed) || 30;
-      footerText = displaySettings.settings.footer_text || "";
+      footerText = displaySettings.settings.footer_text.trim();
       footerContinuous = displaySettings.settings.footer_continuous !== false; // Default to true
       
       console.log('Database footer settings:');
@@ -530,29 +529,28 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log(`  footer_text: ${displaySettings.settings.footer_text}`);
       console.log(`  footer_continuous: ${displaySettings.settings.footer_continuous} -> ${footerContinuous}`);
       
-      // If no footer text from database, hide footer
-      if (!footerText.trim()) {
-        console.log('No footer text in database, hiding footer');
+      // Only show footer if we have actual content from database
+      if (footerText) {
+        console.log(`Footer settings loaded - Speed: ${footerSpeed}px/s, Continuous: ${footerContinuous}, Text: ${footerText.substring(0, 50)}...`);
+        
+        // Show footer with database content
+        const footerContainer = document.querySelector('.Footer');
+        if (footerContainer) {
+          footerContainer.style.display = 'block';
+          console.log('Footer shown with database content');
+        }
+        
+        updateFooterContent();
+        setAnimationDuration();
+      } else {
+        console.log('Empty footer text in database, hiding footer');
         const footerContainer = document.querySelector('.Footer');
         if (footerContainer) {
           footerContainer.style.display = 'none';
         }
-        return;
       }
-      
-      console.log(`Footer settings loaded - Speed: ${footerSpeed}px/s, Continuous: ${footerContinuous}, Text: ${footerText.substring(0, 50)}...`);
-      
-      // Show footer now that we have valid content
-      const footerContainer = document.querySelector('.Footer');
-      if (footerContainer) {
-        footerContainer.style.display = 'block';
-        console.log('Footer shown with database content');
-      }
-      
-      updateFooterContent();
-      setAnimationDuration();
     } else {
-      console.log('No displaySettings available, hiding footer');
+      console.log('No footer content in database, hiding footer');
       const footerContainer = document.querySelector('.Footer');
       if (footerContainer) {
         footerContainer.style.display = 'none';
