@@ -540,20 +540,7 @@
                                 <span id="productCountBadge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">0</span>
                             </div>
                             
-                            <div class="flex items-center space-x-3">
-                                <select id="statusFilter" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Alle Status</option>
-                                    <option value="active">Actief</option>
-                                    <option value="inactive">Inactief</option>
-                                </select>
-                                
-                                <select id="badgeFilter" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Alle Badges</option>
-                                    <option value="sale">🏷️ Aanbieding</option>
-                                    <option value="new">✨ Nieuw</option>
-                                    <option value="none">Geen badges</option>
-                                </select>
-                                
+                            <div class="flex items-center">
                                 <button id="addProductBtn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors shadow-sm">
                                     <i class="fas fa-plus mr-2"></i>
                                     Nieuw Product
@@ -561,9 +548,9 @@
                             </div>
                         </div>
                         
-                        <!-- Search Row -->
-                        <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                            <div class="relative flex-1 max-w-md">
+                        <!-- Search and Filter Row -->
+                        <div class="flex flex-col lg:flex-row lg:items-center space-y-3 lg:space-y-0 lg:space-x-3">
+                            <div class="relative flex-1 max-w-sm">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i class="fas fa-search text-gray-400"></i>
                                 </div>
@@ -571,10 +558,21 @@
                                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
                                        placeholder="Zoek producten...">
                             </div>
-                            <div class="flex-shrink-0">
-                                <select id="categoryFilterAllProducts" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-w-[180px]">
+                            <div class="flex items-center space-x-3 flex-shrink-0">
+                                <select id="categoryFilterAllProducts" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-44">
                                     <option value="">Alle Categorieën</option>
                                     <!-- Categories will be populated dynamically -->
+                                </select>
+                                <select id="statusFilter" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-32">
+                                    <option value="">Alle Status</option>
+                                    <option value="active">Actief</option>
+                                    <option value="inactive">Inactief</option>
+                                </select>
+                                <select id="badgeFilter" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-36">
+                                    <option value="">Alle Badges</option>
+                                    <option value="sale">🏷️ Aanbieding</option>
+                                    <option value="new">✨ Nieuw</option>
+                                    <option value="none">Geen Badge</option>
                                 </select>
                             </div>
                         </div>
