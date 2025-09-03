@@ -264,8 +264,8 @@
                 <button class="admin-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2" 
                         data-tab="menu" 
                         aria-selected="false">
-                    <i class="fas fa-utensils text-sm"></i>
-                    <span>Menu Beheer</span>
+                    <i class="fas fa-cubes text-sm"></i>
+                    <span>Producten Beheer</span>
                 </button>
                 <button class="admin-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2" 
                         data-tab="settings" 
@@ -293,58 +293,153 @@
             </div>
             
             <!-- Stats Cards - Shadcn Style -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-card text-card-foreground border border-border rounded-lg shadow-sm transition-colors">
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
                 <div class="p-6">
                     <div class="flex items-center space-x-4">
-                        <div class="p-2 bg-primary/10 rounded-md">
-                            <i class="fas fa-layer-group text-primary text-xl"></i>
+                        <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-md">
+                            <i class="fas fa-layer-group text-blue-600 dark:text-blue-400 text-xl"></i>
                         </div>
                         <div class="flex-1 space-y-1">
-                            <p class="text-sm font-medium text-muted-foreground">Categorieën</p>
-                            <p class="text-2xl font-bold text-foreground" id="categoryCount">-</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Categorieën</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="categoryCount">-</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-card text-card-foreground border border-border rounded-lg shadow-sm transition-colors">
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
                 <div class="p-6">
                     <div class="flex items-center space-x-4">
                         <div class="p-2 bg-green-100 dark:bg-green-900 rounded-md">
                             <i class="fas fa-shopping-cart text-green-600 dark:text-green-400 text-xl"></i>
                         </div>
                         <div class="flex-1 space-y-1">
-                            <p class="text-sm font-medium text-muted-foreground">Producten</p>
-                            <p class="text-2xl font-bold text-foreground" id="productCount">-</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Producten</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="productCount">-</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-card text-card-foreground border border-border rounded-lg shadow-sm transition-colors">
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
                 <div class="p-6">
                     <div class="flex items-center space-x-4">
                         <div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-md">
-                            <i class="fas fa-euro-sign text-yellow-600 dark:text-yellow-400 text-xl"></i>
+                            <i class="fas fa-tags text-yellow-600 dark:text-yellow-400 text-xl"></i>
                         </div>
                         <div class="flex-1 space-y-1">
-                            <p class="text-sm font-medium text-muted-foreground">Gem. Prijs</p>
-                            <p class="text-2xl font-bold text-foreground" id="avgPrice">-</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Aanbiedingen</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="saleCount">-</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-card text-card-foreground border border-border rounded-lg shadow-sm transition-colors">
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
+                <div class="p-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-md">
+                            <i class="fas fa-sparkles text-emerald-600 dark:text-emerald-400 text-xl"></i>
+                        </div>
+                        <div class="flex-1 space-y-1">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Nieuwe Items</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="newCount">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
+                <div class="p-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="p-2 bg-orange-100 dark:bg-orange-900 rounded-md">
+                            <i class="fas fa-euro-sign text-orange-600 dark:text-orange-400 text-xl"></i>
+                        </div>
+                        <div class="flex-1 space-y-1">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Gem. Prijs</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="avgPrice">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
                 <div class="p-6">
                     <div class="flex items-center space-x-4">
                         <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-md">
                             <i class="fas fa-clock text-purple-600 dark:text-purple-400 text-xl"></i>
                         </div>
                         <div class="flex-1 space-y-1">
-                            <p class="text-sm font-medium text-muted-foreground">Laatste Update</p>
-                            <p class="text-sm font-semibold text-foreground" id="lastUpdate">-</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Laatste Update</p>
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white" id="lastUpdate">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slideshow Preview Section -->
+        <div class="mb-8">
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                        <i class="fas fa-tv mr-2"></i>
+                        Live Slideshow Preview
+                    </h3>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Snelheid: <span id="slideSpeedDisplay">6s</span></span>
+                        </div>
+                        <a href="/" target="_blank" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white shadow hover:bg-blue-700 h-8 px-3 py-1">
+                            <i class="fas fa-external-link-alt mr-1 text-xs"></i>
+                            Bekijk Live
+                        </a>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Footer Text Preview -->
+                        <div class="space-y-3">
+                            <h4 class="font-semibold text-gray-900 dark:text-white flex items-center">
+                                <i class="fas fa-align-bottom mr-2 text-sm"></i>
+                                Footer Teksten
+                            </h4>
+                            <div id="footerPreview" class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg p-4 min-h-[100px]">
+                                <div class="text-sm text-gray-600 dark:text-gray-400 italic">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>
+                                    Laden...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Display Settings Preview -->
+                        <div class="space-y-3">
+                            <h4 class="font-semibold text-gray-900 dark:text-white flex items-center">
+                                <i class="fas fa-cog mr-2 text-sm"></i>
+                                Display Instellingen
+                            </h4>
+                            <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Kolommen:</span>
+                                        <span class="font-semibold text-gray-900 dark:text-white" id="displayColumnsPreview">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Header:</span>
+                                        <span class="font-semibold text-gray-900 dark:text-white" id="headerHeightPreview">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Footer:</span>
+                                        <span class="font-semibold text-gray-900 dark:text-white" id="footerHeightPreview">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Snelheid:</span>
+                                        <span class="font-semibold text-gray-900 dark:text-white" id="footerSpeedPreview">-</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -356,107 +451,156 @@
         <!-- Menu Beheer Tab -->
         <div id="menu-tab" class="tab-content hidden">
             <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Menu Beheer</h2>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Producten Beheer</h2>
                 <p class="text-gray-600 dark:text-gray-400">Beheer categorieën en producten voor je signage</p>
             </div>
             
-            <!-- Main Content -->
-        <div class="mb-8">
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                        <i class="fas fa-table mr-2"></i>
-                        Complete Menu Data Overview
-                    </h3>
-                    <button id="refreshDataOverview" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
-                        <i class="fas fa-sync-alt mr-1"></i>
-                        Refresh
-                    </button>
-                </div>
-                <div class="p-6">
-                    <div class="overflow-x-auto">
-                        <table id="dataOverviewTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-900">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Categorie</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Product</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Prijs</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Display Order</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Badges</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Data Source</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dataOverviewBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                <tr>
-                                    <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                                        <i class="fas fa-spinner fa-spin mr-2"></i>
-                                        Loading data overview...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+
+        <!-- Header with Quick Stats -->
+        <div class="mb-6">
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
+                <div class="px-6 py-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                        <div class="flex items-center space-x-6">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Categorieën:</span>
+                                <span class="font-semibold text-gray-900 dark:text-white" id="categoryCountHeader">-</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Producten:</span>
+                                <span class="font-semibold text-gray-900 dark:text-white" id="productCountHeader">-</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Actieve:</span>
+                                <span class="font-semibold text-gray-900 dark:text-white" id="activeProductCountHeader">-</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button id="bulkActivateBtn" class="inline-flex items-center px-3 py-1.5 border border-green-300 dark:border-green-600 text-sm leading-4 font-medium rounded-md text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                                <i class="fas fa-check-circle mr-1.5 text-xs"></i>
+                                Alles Actief
+                            </button>
+                            <button id="bulkDeactivateBtn" class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
+                                <i class="fas fa-pause-circle mr-1.5 text-xs"></i>
+                                Alles Inactief
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Categories -->
-            <div class="lg:col-span-1">
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                            <i class="fas fa-layer-group mr-2"></i>
+        <!-- Master-Detail Layout -->
+        <div class="flex flex-col lg:flex-row gap-6 h-[calc(100vh-300px)]">
+            
+            <!-- Category Sidebar (Master) -->
+            <div class="lg:w-80 flex-shrink-0">
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors h-full flex flex-col">
+                    <!-- Sidebar Header -->
+                    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                            <i class="fas fa-layer-group mr-2 text-blue-500"></i>
                             Categorieën
                         </h3>
-                        <button id="addCategoryBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                        <button id="addCategoryBtn" class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                             <i class="fas fa-plus mr-1"></i>
-                            Toevoegen
+                            Nieuw
                         </button>
                     </div>
-                    <div class="p-6">
+                    
+                    <!-- Category List -->
+                    <div class="flex-1 overflow-y-auto p-4">
                         <div id="categoriesList" class="space-y-3">
                             <!-- Categories will be loaded here -->
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Products -->
-            <div class="lg:col-span-2">
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                            <i class="fas fa-shopping-cart mr-2"></i>
-                            Producten
-                        </h3>
-                        <div class="flex space-x-2">
-                            <select id="categoryFilter" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-1 text-sm">
-                                <option value="">Alle categorieën</option>
-                            </select>
-                            <button id="addProductBtn" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
-                                <i class="fas fa-plus mr-1"></i>
-                                Toevoegen
-                            </button>
+            
+            <!-- Product Detail View -->
+            <div class="flex-1 flex flex-col min-w-0">
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors h-full flex flex-col">
+                    
+                    <!-- Product Header with Search and Actions -->
+                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                        <!-- Title and Filter Row -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                    <i class="fas fa-cubes mr-2 text-green-500"></i>
+                                    <span id="productsSectionTitle">Alle Producten</span>
+                                </h3>
+                                <span id="productCountBadge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">0</span>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3">
+                                <select id="statusFilter" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Alle Status</option>
+                                    <option value="active">Actief</option>
+                                    <option value="inactive">Inactief</option>
+                                </select>
+                                
+                                <select id="badgeFilter" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Alle Badges</option>
+                                    <option value="sale">🏷️ Aanbieding</option>
+                                    <option value="new">✨ Nieuw</option>
+                                    <option value="none">Geen badges</option>
+                                </select>
+                                
+                                <button id="addProductBtn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors shadow-sm">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Nieuw Product
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Search Row -->
+                        <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                            <div class="relative flex-1 max-w-md">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" id="productSearch" 
+                                       class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
+                                       placeholder="Zoek producten...">
+                            </div>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Product</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Categorie</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Prijs</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Acties</th>
-                                </tr>
-                            </thead>
-                            <tbody id="productsTable" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                <!-- Products will be loaded here -->
-                            </tbody>
-                        </table>
+                    
+                    <!-- Product Table -->
+                    <div class="flex-1 overflow-hidden">
+                        <div class="h-full overflow-y-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-900/50 sticky top-0">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            <input type="checkbox" id="selectAllProducts" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700">
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Product
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Prijs
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Status & Badges
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Volgorde
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Acties
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTable" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <!-- Products will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -615,7 +759,7 @@
                     </div>
                     <div class="px-6 py-4">
                         <div class="overflow-x-auto">
-                            <table id="dataOverviewTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <table id="dataOverviewMainTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                 <thead class="bg-gray-50 dark:bg-gray-900">
                                     <tr>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -641,7 +785,7 @@
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody id="dataOverviewBody">
+                                <tbody id="dataOverviewMainBody">
                                     <!-- Data will be populated by JavaScript -->
                                 </tbody>
                             </table>
@@ -794,7 +938,7 @@
     <script src="/src/scripts/shared/smart-logo.js"></script>
     <script src="/src/scripts/shared/logo-controls.js"></script>
     <script type="module" src="/src/scripts/shared/auth.js"></script>
-    <script type="module" src="/src/scripts/admin/admin.js"></script>
+    <script type="module" src="/src/scripts/admin/admin.js?v=1709400001"></script>
     <script>
         // Debug Mode Implementation
         let debugMode = localStorage.getItem('debugMode') === 'true';

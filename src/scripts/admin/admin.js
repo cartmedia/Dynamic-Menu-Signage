@@ -7,6 +7,11 @@ class AdminInterface {
     this.products = [];
     this.currentEditCategory = null;
     this.currentEditProduct = null;
+    this.selectedCategoryId = null;
+    this.filteredProducts = [];
+    this.searchTerm = '';
+    this.statusFilter = '';
+    this.badgeFilter = '';
     
     // Don't auto-initialize - wait for auth
     console.log('AdminInterface constructed, waiting for authentication');
@@ -115,6 +120,9 @@ class AdminInterface {
     // Tab navigation functionality
     this.setupTabNavigation();
 
+    // New UI event listeners for improved products management
+    this.setupNewProductUIListeners();
+
     // Close modals on background click
     ['categoryModal', 'productModal'].forEach(modalId => {
       const modal = document.getElementById(modalId);
@@ -174,47 +182,97 @@ class AdminInterface {
     const container = document.getElementById('categoriesList');
     
     if (this.categories.length === 0) {
-      container.innerHTML = '<p class="text-gray-500 text-sm">Geen categorieën gevonden</p>';
+      container.innerHTML = `
+        <div class="text-center py-8">
+          <i class="fas fa-folder-open text-4xl text-gray-300 dark:text-gray-600 mb-3"></i>
+          <p class="text-gray-500 dark:text-gray-400 text-sm">Geen categorieën gevonden</p>
+          <button onclick="adminInterface.openCategoryModal()" class="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 text-sm font-medium">
+            + Eerste categorie toevoegen
+          </button>
+        </div>
+      `;
       return;
     }
 
-    container.innerHTML = this.categories.map((category, index) => {
-      const productCount = category.product_count || 0;
+    // Add "All Categories" option at the top
+    let html = `
+      <div class="category-item cursor-pointer p-4 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-all duration-200 ${this.selectedCategoryId === null ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/30' : ''}" 
+           data-category-id="" 
+           onclick="adminInterface.selectCategory(null)">
+        <div class="flex items-center">
+          <div class="w-11 h-11 bg-blue-500 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+            <i class="fas fa-th-large text-white text-base"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="font-semibold text-gray-900 dark:text-white text-base mb-0.5">Alle Categorieën</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-400 m-0">${this.products.length} totaal producten</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    html += this.categories.map((category, index) => {
+      const productCount = this.products.filter(p => p.category_id === category.id).length;
+      const isSelected = this.selectedCategoryId === category.id;
+      
       return `
-        <div class="category-item flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-move" 
+        <div class="category-item cursor-pointer p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 transition-all duration-200 ${isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''}" 
              draggable="true" 
              data-category-id="${category.id}" 
-             data-order="${category.display_order}">
-          <div class="flex items-center flex-1">
-            <div class="drag-handle mr-3 text-gray-400 hover:text-gray-600 cursor-grab">
-              <i class="fas fa-grip-vertical"></i>
+             data-order="${category.display_order}"
+             onclick="adminInterface.selectCategory(${category.id})">
+          <div class="space-y-1">
+            <!-- Top row: drag handle + icon + category name -->
+            <div class="flex items-center">
+              <div class="drag-handle mr-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 cursor-grab flex-shrink-0" onclick="event.stopPropagation()">
+                <i class="fas fa-grip-vertical text-sm"></i>
+              </div>
+              <div class="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                <i class="fas fa-layer-group text-gray-600 dark:text-gray-400"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-semibold text-gray-900 dark:text-white truncate text-base">${this.escapeHtml(category.name || 'Unnamed')}</h4>
+              </div>
             </div>
-            <div class="flex-1">
-              <div class="flex items-center">
-                <span class="font-medium text-gray-900">${category.name || 'Unnamed'}</span>
-                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${category.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+            
+            <!-- Second row: product info + status -->
+            <div class="pl-16">
+              <div class="flex items-center space-x-3">
+                <p class="text-sm text-gray-600 dark:text-gray-400 m-0">${productCount} product${productCount === 1 ? '' : 'en'}</p>
+                <span class="text-xs text-gray-400 dark:text-gray-500 font-medium">#${category.display_order || index + 1}</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${category.active ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}">
                   ${category.active ? 'Actief' : 'Inactief'}
                 </span>
               </div>
-              <p class="text-sm text-gray-500">${productCount} producten</p>
             </div>
-          </div>
-          <div class="flex space-x-2">
-            <button onclick="adminInterface.editCategory(${category.id})" 
-                    class="text-blue-600 hover:text-blue-800 text-sm">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button onclick="adminInterface.deleteCategory(${category.id})" 
-                    class="text-red-600 hover:text-red-800 text-sm">
-              <i class="fas fa-trash"></i>
-            </button>
+            
+            <!-- Third row: action buttons under product info -->
+            <div class="pl-16">
+              <div class="flex items-center space-x-1" onclick="event.stopPropagation()">
+                <button onclick="adminInterface.editCategory(${category.id})" 
+                        class="p-1.5 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-900/20 transition-colors text-xs"
+                        title="Bewerken">
+                  <i class="fas fa-edit mr-1"></i>Bewerken
+                </button>
+                <button onclick="adminInterface.deleteCategory(${category.id})" 
+                        class="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 rounded-md hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors text-xs"
+                        title="Verwijderen">
+                  <i class="fas fa-trash mr-1"></i>Verwijderen
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       `;
     }).join('');
     
-    // Add drag and drop listeners
+    container.innerHTML = html;
+    
+    // Re-initialize drag and drop
     this.initializeDragAndDrop();
+    
+    // Update header stats
+    this.updateHeaderStats();
   }
 
   renderProducts() {
@@ -313,8 +371,15 @@ class AdminInterface {
 
   updateStats() {
     try {
+      // Basic stats
       document.getElementById('categoryCount').textContent = this.categories.length;
       document.getElementById('productCount').textContent = this.products.length;
+      
+      // Badge statistics - count products with on_sale and is_new
+      const saleCount = this.products.filter(p => p.on_sale === true).length;
+      const newCount = this.products.filter(p => p.is_new === true).length;
+      document.getElementById('saleCount').textContent = saleCount;
+      document.getElementById('newCount').textContent = newCount;
       
       const avgPrice = this.products.length > 0 
         ? this.products.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0) / this.products.length 
@@ -322,9 +387,95 @@ class AdminInterface {
       document.getElementById('avgPrice').textContent = '€' + avgPrice.toFixed(2).replace('.', ',');
       
       document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('nl-NL');
+      
+      // Update slideshow preview
+      this.updateSlideshowPreview();
     } catch (error) {
       console.error('Error updating stats:', error);
     }
+  }
+
+  /**
+   * Update slideshow preview with current settings and footer content
+   */
+  async updateSlideshowPreview() {
+    try {
+      // Load current settings for slideshow preview
+      const response = await this.apiCall('/.netlify/functions/settings');
+      if (response.ok) {
+        const data = await response.json();
+        const settings = data.settings;
+        
+        // Update slide speed display
+        const slideSpeed = (settings.rotation_interval || 6000) / 1000;
+        document.getElementById('slideSpeedDisplay').textContent = slideSpeed + 's';
+        
+        // Update display settings preview
+        document.getElementById('displayColumnsPreview').textContent = settings.display_columns || '2';
+        document.getElementById('headerHeightPreview').textContent = (settings.header_height || '15') + '%';
+        document.getElementById('footerHeightPreview').textContent = (settings.footer_height || '8') + '%';
+        document.getElementById('footerSpeedPreview').textContent = (settings.footer_speed || '30') + 's';
+        
+        // Update footer text preview
+        this.updateFooterPreview(settings.footer_text);
+      }
+    } catch (error) {
+      console.error('Error updating slideshow preview:', error);
+    }
+  }
+
+  /**
+   * Update footer text preview
+   */
+  updateFooterPreview(footerText) {
+    const footerPreview = document.getElementById('footerPreview');
+    if (!footerPreview) return;
+    
+    if (!footerText || footerText.trim() === '') {
+      footerPreview.innerHTML = `
+        <div class="text-sm text-gray-500 dark:text-gray-400 italic flex items-center">
+          <i class="fas fa-info-circle mr-2"></i>
+          Geen footer teksten ingesteld
+        </div>
+      `;
+      return;
+    }
+    
+    // Split footer text by || and show as separate lines
+    const lines = footerText.split('||').filter(line => line.trim() !== '');
+    
+    if (lines.length === 0) {
+      footerPreview.innerHTML = `
+        <div class="text-sm text-gray-500 dark:text-gray-400 italic flex items-center">
+          <i class="fas fa-info-circle mr-2"></i>
+          Geen footer teksten ingesteld
+        </div>
+      `;
+      return;
+    }
+    
+    const linesHtml = lines.map((line, index) => `
+      <div class="flex items-center justify-between py-1 ${index < lines.length - 1 ? 'border-b border-gray-200 dark:border-gray-700' : ''}">
+        <span class="text-sm text-gray-900 dark:text-white">${this.escapeHtml(line.trim())}</span>
+        <span class="text-xs text-gray-500 dark:text-gray-400">#${index + 1}</span>
+      </div>
+    `).join('');
+    
+    footerPreview.innerHTML = `
+      <div class="space-y-1">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+            <i class="fas fa-list mr-1"></i>
+            ${lines.length} regel${lines.length === 1 ? '' : 's'}
+          </span>
+          <span class="text-xs text-gray-500 dark:text-gray-400">
+            <i class="fas fa-sync-alt mr-1"></i>
+            Doorlopend
+          </span>
+        </div>
+        ${linesHtml}
+      </div>
+    `;
   }
 
   filterProducts(categoryId) {
@@ -1127,8 +1278,10 @@ class AdminInterface {
    * Populate the data overview table with admin data (real database data)
    */
   populateDataOverviewTableFromAdmin(categoriesData, productsData) {
-    const tableBody = document.getElementById('dataOverviewBody');
-    if (!tableBody) return;
+    // Only populate the main Data Overzicht table
+    const tableBodyMain = document.getElementById('dataOverviewMainBody');
+    
+    if (!tableBodyMain) return;
     
     let html = '';
     const categories = categoriesData.categories || [];
@@ -1200,7 +1353,7 @@ class AdminInterface {
       });
     }
     
-    tableBody.innerHTML = html;
+    tableBodyMain.innerHTML = html;
     console.log('Data overview table populated with admin data successfully');
   }
 
@@ -1393,6 +1546,308 @@ class AdminInterface {
       "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+  }
+
+  // ===============================
+  // NEW IMPROVED PRODUCTS UI METHODS
+  // ===============================
+
+  /**
+   * Setup event listeners for the new improved products UI
+   */
+  setupNewProductUIListeners() {
+    console.log('Setting up new product UI listeners...');
+
+    // Search functionality
+    const productSearch = document.getElementById('productSearch');
+    if (productSearch) {
+      productSearch.addEventListener('input', (e) => {
+        this.searchTerm = e.target.value.toLowerCase();
+        this.filterAndRenderProducts();
+      });
+    }
+
+    // Status filter
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+      statusFilter.addEventListener('change', (e) => {
+        this.statusFilter = e.target.value;
+        this.filterAndRenderProducts();
+      });
+    }
+
+    // Badge filter
+    const badgeFilter = document.getElementById('badgeFilter');
+    if (badgeFilter) {
+      badgeFilter.addEventListener('change', (e) => {
+        this.badgeFilter = e.target.value;
+        this.filterAndRenderProducts();
+      });
+    }
+
+    // Bulk actions
+    const bulkActivateBtn = document.getElementById('bulkActivateBtn');
+    if (bulkActivateBtn) {
+      bulkActivateBtn.addEventListener('click', () => {
+        this.bulkActivateProducts();
+      });
+    }
+
+    const bulkDeactivateBtn = document.getElementById('bulkDeactivateBtn');
+    if (bulkDeactivateBtn) {
+      bulkDeactivateBtn.addEventListener('click', () => {
+        this.bulkDeactivateProducts();
+      });
+    }
+
+    // Select all checkbox
+    const selectAllProducts = document.getElementById('selectAllProducts');
+    if (selectAllProducts) {
+      selectAllProducts.addEventListener('change', (e) => {
+        this.toggleSelectAllProducts(e.target.checked);
+      });
+    }
+  }
+
+  /**
+   * Select a category and filter products
+   */
+  selectCategory(categoryId) {
+    console.log('Selecting category:', categoryId);
+    this.selectedCategoryId = categoryId;
+    
+    // Update category visual selection
+    this.renderCategories();
+    
+    // Update product section title and filter products
+    const title = document.getElementById('productsSectionTitle');
+    if (title) {
+      if (categoryId === null) {
+        title.textContent = 'Alle Producten';
+      } else {
+        const category = this.categories.find(c => c.id === categoryId);
+        title.textContent = category ? category.name : 'Onbekende Categorie';
+      }
+    }
+    
+    // Filter and render products
+    this.filterAndRenderProducts();
+  }
+
+  /**
+   * Filter products based on current filters and render them
+   */
+  filterAndRenderProducts() {
+    let filtered = this.products;
+
+    // Filter by selected category
+    if (this.selectedCategoryId !== null) {
+      filtered = filtered.filter(p => p.category_id === this.selectedCategoryId);
+    }
+
+    // Filter by search term
+    if (this.searchTerm) {
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(this.searchTerm) ||
+        (p.description && p.description.toLowerCase().includes(this.searchTerm))
+      );
+    }
+
+    // Filter by status
+    if (this.statusFilter) {
+      if (this.statusFilter === 'active') {
+        filtered = filtered.filter(p => p.active === true);
+      } else if (this.statusFilter === 'inactive') {
+        filtered = filtered.filter(p => p.active === false);
+      }
+    }
+
+    // Filter by badge
+    if (this.badgeFilter) {
+      if (this.badgeFilter === 'sale') {
+        filtered = filtered.filter(p => p.on_sale === true);
+      } else if (this.badgeFilter === 'new') {
+        filtered = filtered.filter(p => p.is_new === true);
+      } else if (this.badgeFilter === 'none') {
+        filtered = filtered.filter(p => !p.on_sale && !p.is_new);
+      }
+    }
+
+    this.filteredProducts = filtered;
+    this.renderFilteredProducts();
+    this.updateProductCount();
+  }
+
+  /**
+   * Render the filtered products in the table
+   */
+  renderFilteredProducts() {
+    const tbody = document.getElementById('productsTable');
+    
+    if (this.filteredProducts.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="px-6 py-12 text-center">
+            <div class="text-gray-400 dark:text-gray-500">
+              <i class="fas fa-search text-4xl mb-3"></i>
+              <p class="text-lg font-medium">Geen producten gevonden</p>
+              <p class="text-sm">Probeer je zoekopdracht of filters aan te passen</p>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = this.filteredProducts.map(product => {
+      const price = parseFloat(product.price) || 0;
+      
+      // Create badges
+      const badges = [];
+      if (product.on_sale === true) badges.push('<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">🏷️ Aanbieding</span>');
+      if (product.is_new === true) badges.push('<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">✨ Nieuw</span>');
+      
+      return `
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <input type="checkbox" class="product-checkbox rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700" data-product-id="${product.id}">
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-lg flex items-center justify-center mr-4">
+                <i class="fas fa-cube text-gray-500 dark:text-gray-400"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">${this.escapeHtml(product.name)}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 truncate">${this.escapeHtml(product.description || '')}</p>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">€${price.toFixed(2).replace('.', ',')}</div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex flex-col space-y-1">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${product.active ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}">
+                ${product.active ? 'Actief' : 'Inactief'}
+              </span>
+              ${badges.join(' ')}
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-gray-900 dark:text-white">${product.display_order || '-'}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <div class="flex items-center space-x-2">
+              <button onclick="adminInterface.editProduct(${product.id})" 
+                      class="p-2 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-900/20 transition-colors"
+                      title="Bewerken">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button onclick="adminInterface.deleteProduct(${product.id})" 
+                      class="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 rounded-md hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+                      title="Verwijderen">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  /**
+   * Update product count badge and header stats
+   */
+  updateProductCount() {
+    const badge = document.getElementById('productCountBadge');
+    if (badge) {
+      badge.textContent = this.filteredProducts.length;
+    }
+    
+    this.updateHeaderStats();
+  }
+
+  /**
+   * Update header statistics
+   */
+  updateHeaderStats() {
+    const categoryCountHeader = document.getElementById('categoryCountHeader');
+    const productCountHeader = document.getElementById('productCountHeader');
+    const activeProductCountHeader = document.getElementById('activeProductCountHeader');
+    
+    if (categoryCountHeader) categoryCountHeader.textContent = this.categories.length;
+    if (productCountHeader) productCountHeader.textContent = this.products.length;
+    if (activeProductCountHeader) {
+      const activeCount = this.products.filter(p => p.active === true).length;
+      activeProductCountHeader.textContent = activeCount;
+    }
+  }
+
+  /**
+   * Bulk activate all products
+   */
+  async bulkActivateProducts() {
+    try {
+      const updates = this.products.map(product => 
+        this.apiCall(`/.netlify/functions/admin-products?id=${product.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            ...product,
+            active: true
+          })
+        })
+      );
+      
+      await Promise.all(updates);
+      await this.loadData();
+      this.showToast('Alle producten geactiveerd', 'success');
+    } catch (error) {
+      console.error('Error bulk activating products:', error);
+      this.showToast('Fout bij bulk activeren', 'error');
+    }
+  }
+
+  /**
+   * Bulk deactivate all products
+   */
+  async bulkDeactivateProducts() {
+    try {
+      const updates = this.products.map(product => 
+        this.apiCall(`/.netlify/functions/admin-products?id=${product.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            ...product,
+            active: false
+          })
+        })
+      );
+      
+      await Promise.all(updates);
+      await this.loadData();
+      this.showToast('Alle producten gedeactiveerd', 'success');
+    } catch (error) {
+      console.error('Error bulk deactivating products:', error);
+      this.showToast('Fout bij bulk deactiveren', 'error');
+    }
+  }
+
+  /**
+   * Toggle select all products
+   */
+  toggleSelectAllProducts(checked) {
+    const checkboxes = document.querySelectorAll('.product-checkbox');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = checked;
+    });
+  }
+
+  /**
+   * Override the original renderProducts to use the new filtering system
+   */
+  renderProducts() {
+    // Initialize with all products
+    this.filterAndRenderProducts();
   }
 
 }
