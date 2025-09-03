@@ -12,6 +12,7 @@ class AdminInterface {
     this.searchTerm = '';
     this.statusFilter = '';
     this.badgeFilter = '';
+    this.categoryFilterAllProducts = '';
     
     // Don't auto-initialize - wait for auth
     console.log('AdminInterface constructed, waiting for authentication');
@@ -335,7 +336,7 @@ class AdminInterface {
   }
 
   updateCategoryDropdowns() {
-    const selects = ['categoryFilter', 'productCategory'];
+    const selects = ['categoryFilter', 'productCategory', 'categoryFilterAllProducts'];
     
     selects.forEach(selectId => {
       const select = document.getElementById(selectId);
@@ -348,8 +349,8 @@ class AdminInterface {
       
       const currentValue = select.value;
       
-      // Keep "All categories" option for filter
-      if (selectId === 'categoryFilter') {
+      // Keep "All categories" option for filters
+      if (selectId === 'categoryFilter' || selectId === 'categoryFilterAllProducts') {
         select.innerHTML = '<option value="">Alle categorieën</option>';
       } else {
         select.innerHTML = '<option value="">Selecteer categorie</option>';
@@ -1585,6 +1586,15 @@ class AdminInterface {
       });
     }
 
+    // Category filter for All Products view
+    const categoryFilterAllProducts = document.getElementById('categoryFilterAllProducts');
+    if (categoryFilterAllProducts) {
+      categoryFilterAllProducts.addEventListener('change', (e) => {
+        this.categoryFilterAllProducts = e.target.value;
+        this.filterAndRenderProducts();
+      });
+    }
+
     // Bulk actions
     const bulkActivateBtn = document.getElementById('bulkActivateBtn');
     if (bulkActivateBtn) {
@@ -1597,6 +1607,13 @@ class AdminInterface {
     if (bulkDeactivateBtn) {
       bulkDeactivateBtn.addEventListener('click', () => {
         this.bulkDeactivateProducts();
+      });
+    }
+
+    const bulkRemoveLabelsBtn = document.getElementById('bulkRemoveLabelsBtn');
+    if (bulkRemoveLabelsBtn) {
+      bulkRemoveLabelsBtn.addEventListener('click', () => {
+        this.bulkRemoveLabels();
       });
     }
 
@@ -1615,6 +1632,15 @@ class AdminInterface {
   selectCategory(categoryId) {
     console.log('Selecting category:', categoryId);
     this.selectedCategoryId = categoryId;
+    
+    // Reset category filter for All Products when selecting a specific category
+    if (categoryId !== null) {
+      this.categoryFilterAllProducts = '';
+      const categoryFilterSelect = document.getElementById('categoryFilterAllProducts');
+      if (categoryFilterSelect) {
+        categoryFilterSelect.value = '';
+      }
+    }
     
     // Update category visual selection
     this.renderCategories();
@@ -1671,6 +1697,11 @@ class AdminInterface {
       } else if (this.badgeFilter === 'none') {
         filtered = filtered.filter(p => !p.on_sale && !p.is_new);
       }
+    }
+
+    // Filter by category (for All Products view)
+    if (this.categoryFilterAllProducts && this.selectedCategoryId === null) {
+      filtered = filtered.filter(p => p.category_id == this.categoryFilterAllProducts);
     }
 
     this.filteredProducts = filtered;
@@ -1829,6 +1860,35 @@ class AdminInterface {
     } catch (error) {
       console.error('Error bulk deactivating products:', error);
       this.showToast('Fout bij bulk deactiveren', 'error');
+    }
+  }
+
+  /**
+   * Bulk remove all labels from products
+   */
+  async bulkRemoveLabels() {
+    if (!confirm('Weet je zeker dat je alle labels van alle producten wilt verwijderen?')) {
+      return;
+    }
+
+    try {
+      const updates = this.products.map(product => 
+        this.apiCall(`/.netlify/functions/admin-products?id=${product.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            ...product,
+            sale_badge: null,
+            new_badge: null
+          })
+        })
+      );
+      
+      await Promise.all(updates);
+      await this.loadData();
+      this.showToast('Alle labels verwijderd', 'success');
+    } catch (error) {
+      console.error('Error bulk removing labels:', error);
+      this.showToast('Fout bij verwijderen labels', 'error');
     }
   }
 
