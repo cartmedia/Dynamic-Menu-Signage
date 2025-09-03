@@ -1239,7 +1239,7 @@ class AdminInterface {
       console.log('Refreshing data overview...');
       
       // Show loading state
-      const tableBody = document.getElementById('dataOverviewBody');
+      const tableBody = document.getElementById('dataOverviewMainBody');
       if (!tableBody) {
         console.error('Data overview table body not found');
         return;
@@ -1267,7 +1267,7 @@ class AdminInterface {
       
     } catch (error) {
       console.error('Error refreshing data overview:', error);
-      const tableBody = document.getElementById('dataOverviewBody');
+      const tableBody = document.getElementById('dataOverviewMainBody');
       if (tableBody) {
         tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-600">Error loading data</td></tr>';
       }
