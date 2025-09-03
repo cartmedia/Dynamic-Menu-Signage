@@ -541,10 +541,6 @@
                             </div>
                             
                             <div class="flex items-center space-x-3">
-                                <select id="categoryFilterAllProducts" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Alle Categorieën</option>
-                                    <!-- Categories will be populated dynamically -->
-                                </select>
                                 <select id="statusFilter" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                                     <option value="">Alle Status</option>
                                     <option value="active">Actief</option>
@@ -574,6 +570,12 @@
                                 <input type="text" id="productSearch" 
                                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
                                        placeholder="Zoek producten...">
+                            </div>
+                            <div class="flex-shrink-0">
+                                <select id="categoryFilterAllProducts" class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-w-[180px]">
+                                    <option value="">Alle Categorieën</option>
+                                    <!-- Categories will be populated dynamically -->
+                                </select>
                             </div>
                         </div>
                     </div>
