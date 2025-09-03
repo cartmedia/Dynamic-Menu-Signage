@@ -134,6 +134,14 @@ body {
   min-height: 4vh; /* Ensure consistent height */
 }
 
+.MenuItem.on-sale {
+  /* Highlight background for sale items */
+  background-color: rgba(255, 193, 7, 0.1); /* Subtle gold background */
+  border-left: 3px solid #c19d6c; /* Team Pinas gold accent */
+  padding-left: 1vh; /* Add padding for border */
+  border-radius: 0.3rem;
+}
+
 .MenuItemType {
   flex: 1;
   font-family: "coolvetica", sans-serif;
@@ -144,6 +152,26 @@ body {
   padding: 0.2vh 0; /* Remove horizontal padding */
   z-index: 2;
   position: relative;
+}
+
+.sale-badge {
+  display: inline-block;
+  background: linear-gradient(45deg, #c19d6c, #d4af74);
+  color: #1a1a1a;
+  font-size: 1.8vh;
+  font-weight: bold;
+  padding: 0.3vh 0.8vh;
+  border-radius: 0.8vh;
+  margin-left: 1vh;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
 }
 
 .MenuFoodItem {

@@ -178,9 +178,11 @@ document.addEventListener("DOMContentLoaded", function () {
     let itemsHtml = '<div class="MenuItemsContainer">';
     const list = Array.isArray(itemsOverride) ? itemsOverride : (category.items || []);
     list.forEach((it) => {
+      const onSaleClass = it.on_sale ? ' on-sale' : '';
+      const saleBadge = it.on_sale ? '<span class="sale-badge">Aanbieding</span>' : '';
       itemsHtml += `
-        <div class="MenuItem">
-          <div class="MenuItemType">${cleanName(it.name)}</div>
+        <div class="MenuItem${onSaleClass}">
+          <div class="MenuItemType">${cleanName(it.name)}${saleBadge}</div>
           <div class="MenuFoodItem">${euro(it.price)}</div>
         </div>
       `;

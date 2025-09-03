@@ -239,9 +239,12 @@ class AdminInterface {
             <div class="text-sm text-gray-900">€${price.toFixed(2).replace('.', ',')}</div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${product.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-              ${product.active ? 'Actief' : 'Inactief'}
-            </span>
+            <div class="flex flex-col space-y-1">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${product.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                ${product.active ? 'Actief' : 'Inactief'}
+              </span>
+              ${product.on_sale ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">🏷️ Aanbieding</span>' : ''}
+            </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
             <button onclick="adminInterface.editProduct(${product.id})" 
@@ -503,10 +506,12 @@ class AdminInterface {
       document.getElementById('productDescription').value = product.description || '';
       document.getElementById('productOrder').value = product.display_order;
       document.getElementById('productActive').checked = product.active;
+      document.getElementById('productOnSale').checked = product.on_sale || false;
     } else {
       title.textContent = 'Nieuw Product';
       document.getElementById('productForm').reset();
       document.getElementById('productActive').checked = true;
+      document.getElementById('productOnSale').checked = false;
     }
     
     modal.classList.remove('hidden');
@@ -524,6 +529,7 @@ class AdminInterface {
     const description = document.getElementById('productDescription').value.trim();
     const order = parseInt(document.getElementById('productOrder').value);
     const active = document.getElementById('productActive').checked;
+    const onSale = document.getElementById('productOnSale').checked;
 
     if (!name || !categoryId || isNaN(price)) {
       this.showToast('Naam, categorie en prijs zijn verplicht', 'error');
@@ -537,7 +543,8 @@ class AdminInterface {
         price,
         description,
         display_order: order,
-        active
+        active,
+        on_sale: onSale
       };
 
       let response;
@@ -656,6 +663,7 @@ class AdminInterface {
         
         // Populate settings form - check if elements exist first
         const displayColumns = document.getElementById('displayColumns');
+        const slideSpeed = document.getElementById('slideSpeed');
         const headerHeight = document.getElementById('headerHeight');
         const footerHeight = document.getElementById('footerHeight');
         const footerText = document.getElementById('footerText');
@@ -663,6 +671,7 @@ class AdminInterface {
         const footerContinuous = document.getElementById('footerContinuous');
         
         if (displayColumns) displayColumns.value = data.settings.display_columns || '2';
+        if (slideSpeed) slideSpeed.value = (data.settings.rotation_interval || 6000) / 1000; // Convert ms to seconds
         if (headerHeight) headerHeight.value = data.settings.header_height || '15';
         if (footerHeight) footerHeight.value = data.settings.footer_height || '8';
         if (footerSpeed) footerSpeed.value = data.settings.footer_speed || '30';
@@ -683,6 +692,7 @@ class AdminInterface {
     try {
       // Safely get form elements with fallback values
       const displayColumns = document.getElementById('displayColumns')?.value || '2';
+      const slideSpeed = document.getElementById('slideSpeed')?.value || '6';
       const headerHeight = document.getElementById('headerHeight')?.value || '15';
       const footerHeight = document.getElementById('footerHeight')?.value || '8';
       const footerSpeed = document.getElementById('footerSpeed')?.value || '30';
@@ -693,6 +703,7 @@ class AdminInterface {
 
       const settingsData = {
         display_columns: parseInt(displayColumns),
+        rotation_interval: parseInt(slideSpeed) * 1000, // Convert seconds to milliseconds
         header_height: parseInt(headerHeight),
         footer_height: parseInt(footerHeight),
         footer_text: footerText,

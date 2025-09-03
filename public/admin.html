@@ -342,7 +342,7 @@
                 <div class="p-6">
                     <div class="space-y-6">
                         <!-- Layout Settings Row -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Aantal Kolommen
@@ -354,6 +354,17 @@
                                 </select>
                                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                     Kies hoeveel kolommen er op het display getoond worden
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Slide Snelheid (sec)
+                                </label>
+                                <input type="number" id="slideSpeed" min="3" max="30" step="1"
+                                       class="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       value="6">
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    Hoe snel categorieën wisselen (3-30 seconden)
                                 </p>
                             </div>
                             <div>
@@ -524,11 +535,22 @@
                                     <input type="number" id="productOrder" value="0"
                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
-                                <div>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" id="productActive" checked class="mr-2">
-                                        <span class="text-sm text-gray-700 dark:text-gray-300">Actief</span>
-                                    </label>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="productActive" checked class="mr-2">
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">Actief</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="productOnSale" class="mr-2">
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">🏷️ Actie/Aanbieding</span>
+                                        </label>
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                            Toont "AANBIEDING" label bij het product
+                                        </p>
+                                    </div>
                                 </div>
                             </form>
                         </div>
