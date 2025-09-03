@@ -37,7 +37,7 @@ class CMSConnector {
         const url = this.config.api.baseUrl + this.config.api.endpoints.products;
         const response = await fetch(url, {
           headers: this.config.api.headers,
-          timeout: 10000 // 10 second timeout
+          signal: AbortSignal.timeout(3000) // 3 second timeout - faster fail
         });
 
         if (response.ok) {
@@ -84,8 +84,21 @@ class CMSConnector {
       console.error('Failed to load local products:', error);
     }
     
-    // Return empty structure if everything fails
-    return { categories: [] };
+    // Return fast local fallback if everything fails
+    console.log('🚨 All data sources failed - using emergency fallback');
+    return {
+      categories: [
+        {
+          title: "Team Pinas Menu", 
+          display_order: 1,
+          items: [
+            { name: "Loading menu...", price: 0, display_order: 1, on_sale: false, is_new: false }
+          ]
+        }
+      ],
+      lastUpdated: new Date().toISOString(),
+      source: 'emergency-fallback'
+    };
   }
 
   /**
@@ -133,11 +146,11 @@ class CMSConnector {
   async handleAPIFailure(endpoint) {
     this.retryCount++;
     
-    if (this.retryCount <= this.config.refresh.maxRetries) {
+    if (this.retryCount <= 1) { // Only 1 retry for faster loading
       console.log(`Retrying ${endpoint} request (attempt ${this.retryCount})`);
-      // Wait before retry
+      // Shorter wait before retry
       await new Promise(resolve => 
-        setTimeout(resolve, this.config.refresh.retryInterval)
+        setTimeout(resolve, 500) // 500ms instead of longer interval
       );
       return this.getProducts(); // Retry
     }
