@@ -484,27 +484,21 @@ document.addEventListener("DOMContentLoaded", function () {
       htmlContent += '<img class="sep" src="assets/images/pinas_kroon.svg" alt="" role="presentation" aria-hidden="true" />';
     });
     
-    if (footerContinuous) {
-      // Duplicate the content for seamless continuous scrolling
-      scrollingTextSpan.innerHTML = htmlContent + htmlContent;
-    } else {
-      // Single content with natural end/start gap
-      scrollingTextSpan.innerHTML = htmlContent;
-    }
+    // Always use single content - the new CSS animation handles continuous scrolling naturally
+    scrollingTextSpan.innerHTML = htmlContent;
   }
 
   function setAnimationDuration() {
     if (!scrollingTextSpan) return;
     
-    let spanWidth = scrollingTextSpan.offsetWidth;
+    const containerWidth = scrollingTextSpan.parentElement.offsetWidth;
+    const spanWidth = scrollingTextSpan.offsetWidth;
     
-    if (footerContinuous) {
-      // Get half the width since the text is duplicated for seamless loop
-      spanWidth = spanWidth / 2;
-    }
+    // Calculate total distance: text width + container width (for smooth entry/exit)
+    const totalDistance = spanWidth + containerWidth;
     
     // Calculate duration based on speed setting (pixels per second)
-    const duration = spanWidth / footerSpeed;
+    const duration = totalDistance / footerSpeed;
     scrollingTextSpan.style.animationDuration = duration + "s";
   }
 
