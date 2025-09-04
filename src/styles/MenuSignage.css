@@ -325,7 +325,7 @@ body {
 /* FOOTER LAYOUT */
 .SignageFooter {
   background-color: #c19d6c; /* Team Pinas Gold */
-  color: #101010; /* Dark text for contrast on gold */
+  color: var(--footer-text-color, #101010); /* Configurable text color with dark default */
   font-family: "futura-pt", sans-serif;
   font-size: 3vh;
   text-align: center;
@@ -336,6 +336,28 @@ body {
   align-items: center;
   justify-content: center;
   line-height: 1; /* Tight line height for better control */
+}
+
+/* Footer text color variants */
+.SignageFooter.footer-light {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.SignageFooter.footer-dark {
+  color: #101010;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+/* Per-row text color overrides */
+.ScrollingText .footer-text-light {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.ScrollingText .footer-text-dark {
+  color: #101010 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
 }
 
 .CategorySlot {

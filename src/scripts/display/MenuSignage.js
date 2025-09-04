@@ -176,6 +176,7 @@ class DisplaySettings {
     const headerHeight = parseInt(this.settings.header_height) || 15;
     const footerHeight = parseFloat(this.settings.footer_height) || 7.8; // Match CSS default
     const logoSize = parseInt(this.settings.logo_size) || 36; // Match CSS default
+    const footerTextColor = this.settings.footer_text_color || 'dark'; // Default to dark text
     
     // Set CSS custom properties on body element
     document.body.style.setProperty('--header-height', `${headerHeight}vh`);
@@ -183,7 +184,29 @@ class DisplaySettings {
     document.body.style.setProperty('--logo-size', `${logoSize}vh`);
     document.body.style.setProperty('--body-height', `calc(100vh - ${headerHeight}vh - ${footerHeight}vh)`);
     
-    console.log(`Applied header: ${headerHeight}vh, footer: ${footerHeight}vh, logo: ${logoSize}vh`);
+    // Apply footer text color
+    this.applyFooterTextColor(footerTextColor);
+    
+    console.log(`Applied header: ${headerHeight}vh, footer: ${footerHeight}vh, logo: ${logoSize}vh, footer text: ${footerTextColor}`);
+  }
+
+  applyFooterTextColor(colorMode) {
+    const footerContainer = document.querySelector('.SignageFooter');
+    if (!footerContainer) return;
+    
+    // Remove existing color classes
+    footerContainer.classList.remove('footer-light', 'footer-dark');
+    
+    // Apply new color class and CSS custom property
+    if (colorMode === 'light') {
+      footerContainer.classList.add('footer-light');
+      document.body.style.setProperty('--footer-text-color', '#ffffff');
+      console.log('🎨 Applied light footer text color');
+    } else {
+      footerContainer.classList.add('footer-dark');
+      document.body.style.setProperty('--footer-text-color', '#101010');
+      console.log('🎨 Applied dark footer text color');
+    }
   }
 
   getColumnCount() {
@@ -571,6 +594,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let footerSpeed = 30; // Default pixels per second
   let footerText = ""; // No fallback content - only show footer if database has content
   let footerContinuous = true; // Default to continuous scrolling
+  let footerInitialized = false;
 
   function updateFooterContent() {
     if (!scrollingTextSpan) return;
@@ -588,14 +612,28 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       if (footerContainer) {
         footerContainer.style.display = 'block';
+        console.log('✅ Footer shown immediately with content');
       }
     }
     
     let htmlContent = '';
     
-    // Create the scrolling content with SVG separators
+    // Get per-row color settings if available
+    const footerRowColors = displaySettings?.settings?.footer_row_colors;
+    const usePerRowColors = footerRowColors && Array.isArray(footerRowColors);
+    
+    // Create the scrolling content with SVG separators and optional per-row colors
     textParts.forEach((part, index) => {
-      htmlContent += part.trim();
+      let partContent = part.trim();
+      
+      // Apply per-row color if specified
+      if (usePerRowColors && footerRowColors[index]) {
+        const colorClass = footerRowColors[index] === 'light' ? 'footer-text-light' : 'footer-text-dark';
+        partContent = `<span class="${colorClass}">${partContent}</span>`;
+        console.log(`🎨 Applied ${colorClass} to row ${index + 1}`);
+      }
+      
+      htmlContent += partContent;
       // Add SVG separator after each part
       htmlContent += '<img class="sep" src="assets/images/pinas_kroon.svg" alt="" role="presentation" aria-hidden="true" />';
     });
@@ -609,13 +647,27 @@ document.addEventListener("DOMContentLoaded", function () {
       scrollingTextSpan.innerHTML = htmlContent;
       scrollingTextSpan.style.animationName = 'scrollTextDiscrete';
     }
+    
+    // Set animation immediately after content is set
+    requestAnimationFrame(() => {
+      setAnimationDuration();
+      footerInitialized = true;
+    });
   }
 
   function setAnimationDuration() {
-    if (!scrollingTextSpan) return;
+    if (!scrollingTextSpan || !scrollingTextSpan.innerHTML.trim()) return;
     
+    // Force layout calculation to ensure accurate measurements
     const containerWidth = scrollingTextSpan.parentElement.offsetWidth;
     let spanWidth = scrollingTextSpan.offsetWidth;
+    
+    // Fallback if measurements fail
+    if (!containerWidth || !spanWidth) {
+      console.warn('⚠️ Footer measurement failed, using fallback timing');
+      scrollingTextSpan.style.animationDuration = '20s';
+      return;
+    }
     
     let totalDistance;
     
@@ -630,50 +682,51 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     // Calculate duration based on speed setting (pixels per second)
-    const duration = totalDistance / footerSpeed;
-    scrollingTextSpan.style.animationDuration = duration + "s";
+    // Minimum duration of 5s to prevent too fast scrolling
+    const calculatedDuration = Math.max(5, totalDistance / footerSpeed);
+    scrollingTextSpan.style.animationDuration = calculatedDuration + "s";
     
-    console.log(`Animation: ${footerContinuous ? 'continuous' : 'discrete'}, spanWidth: ${spanWidth}px, containerWidth: ${containerWidth}px, totalDistance: ${totalDistance}px, duration: ${duration}s`);
+    console.log(`🎬 Footer animation: ${footerContinuous ? 'continuous' : 'discrete'}, spanWidth: ${spanWidth}px, containerWidth: ${containerWidth}px, totalDistance: ${totalDistance}px, duration: ${calculatedDuration}s`);
   }
 
   // Load footer settings from CMS
   async function loadFooterSettings() {
-    console.log('loadFooterSettings called');
-    console.log('displaySettings:', displaySettings);
-    console.log('displaySettings.settings:', displaySettings?.settings);
+    console.log('🔄 loadFooterSettings called');
     
     if (displaySettings && displaySettings.settings && displaySettings.settings.footer_text) {
       footerSpeed = parseInt(displaySettings.settings.footer_speed) || 30;
       footerText = displaySettings.settings.footer_text.trim();
       footerContinuous = displaySettings.settings.footer_continuous !== false; // Default to true
+      const footerTextColor = displaySettings.settings.footer_text_color || 'dark'; // Default to dark
       
-      console.log('Database footer settings:');
-      console.log(`  footer_speed: ${displaySettings.settings.footer_speed} -> ${footerSpeed}`);
-      console.log(`  footer_text: ${displaySettings.settings.footer_text}`);
-      console.log(`  footer_continuous: ${displaySettings.settings.footer_continuous} -> ${footerContinuous}`);
+      console.log('📊 Database footer settings loaded:');
+      console.log(`  Speed: ${footerSpeed}px/s, Continuous: ${footerContinuous}, Global Color: ${footerTextColor}`);
+      console.log(`  Text: "${footerText.substring(0, 50)}${footerText.length > 50 ? '...' : ''}"`);
+      
+      // Check for per-row colors
+      const footerRowColors = displaySettings.settings.footer_row_colors;
+      if (footerRowColors && Array.isArray(footerRowColors)) {
+        console.log(`  Per-row colors: [${footerRowColors.join(', ')}]`);
+      }
+      
+      // Apply footer text color setting
+      if (displaySettings.applyFooterTextColor) {
+        displaySettings.applyFooterTextColor(footerTextColor);
+      }
       
       // Only show footer if we have actual content from database
       if (footerText) {
-        console.log(`Footer settings loaded - Speed: ${footerSpeed}px/s, Continuous: ${footerContinuous}, Text: ${footerText.substring(0, 50)}...`);
-        
-        // Show footer with database content
-        const footerContainer = document.querySelector('.Footer');
-        if (footerContainer) {
-          footerContainer.style.display = 'block';
-          console.log('Footer shown with database content');
-        }
-        
-        updateFooterContent();
-        setAnimationDuration();
+        console.log('✅ Footer content available, initializing...');
+        updateFooterContent(); // This will show the footer and start animation
       } else {
-        console.log('Empty footer text in database, hiding footer');
+        console.log('⚠️ Empty footer text in database, hiding footer');
         const footerContainer = document.querySelector('.Footer');
         if (footerContainer) {
           footerContainer.style.display = 'none';
         }
       }
     } else {
-      console.log('No footer content in database, hiding footer');
+      console.log('ℹ️ No footer content in database, hiding footer');
       const footerContainer = document.querySelector('.Footer');
       if (footerContainer) {
         footerContainer.style.display = 'none';
@@ -681,25 +734,59 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Hide footer initially until settings are loaded
+  // Show footer with loading state initially, then load settings
   const footerContainer = document.querySelector('.Footer');
   if (footerContainer) {
-    footerContainer.style.display = 'none';
-    console.log('Footer hidden initially, waiting for settings');
+    footerContainer.style.display = 'none'; // Start hidden, but load quickly
+    console.log('🔄 Footer initialized, loading settings...');
   }
 
-  // Load settings when available
-  if (displaySettings) {
-    displaySettings.loadSettings().then(() => {
+  // Fast settings loading with immediate check and timeout fallback
+  const loadFooterWithTimeout = async () => {
+    // Check if settings are already loaded
+    if (displaySettings && displaySettings.settings && displaySettings.settings.footer_text) {
+      console.log('⚡ Footer settings already loaded, showing immediately');
       loadFooterSettings();
-    });
-  } else {
-    // Fallback if displaySettings not available
-    console.log('No displaySettings available, keeping footer hidden');
-  }
+      return;
+    }
+    
+    const settingsTimeout = new Promise(resolve => setTimeout(resolve, 1500)); // Reduced to 1.5s timeout
+    
+    try {
+      if (displaySettings) {
+        // Race between settings loading and timeout
+        await Promise.race([
+          displaySettings.loadSettings().then(() => {
+            console.log('⚡ Footer settings loaded via promise');
+            loadFooterSettings();
+          }),
+          settingsTimeout.then(() => {
+            console.warn('⏰ Footer settings timeout, checking if settings are now available...');
+            if (displaySettings.settings && displaySettings.settings.footer_text) {
+              console.log('⚡ Footer settings found after timeout');
+              loadFooterSettings();
+            } else {
+              console.log('ℹ️ No footer settings available after timeout');
+            }
+          })
+        ]);
+      } else {
+        console.log('⚠️ No displaySettings available, keeping footer hidden');
+      }
+    } catch (error) {
+      console.warn('❌ Footer settings loading failed:', error);
+    }
+  };
+
+  // Start loading immediately - run async without blocking
+  loadFooterWithTimeout();
 
   // Restart the animation when it ends to simulate an infinite scroll
-  scrollingTextSpan.addEventListener("animationiteration", () => {
-    setAnimationDuration();
-  });
+  if (scrollingTextSpan) {
+    scrollingTextSpan.addEventListener("animationiteration", () => {
+      if (footerInitialized) {
+        setAnimationDuration();
+      }
+    });
+  }
 });
