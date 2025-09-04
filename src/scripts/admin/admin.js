@@ -1617,6 +1617,9 @@ class AdminInterface {
       });
     }
 
+    // Bulk Remove Labels Modal Event Listeners
+    this.setupBulkRemoveModalListeners();
+
     // Select all checkbox
     const selectAllProducts = document.getElementById('selectAllProducts');
     if (selectAllProducts) {
@@ -1872,31 +1875,230 @@ class AdminInterface {
   }
 
   /**
-   * Bulk remove all labels from products
+   * Open bulk remove labels modal (multi-step process)
    */
-  async bulkRemoveLabels() {
-    if (!confirm(`Weet je zeker dat je alle labels van alle ${this.products.length} producten wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`)) {
+  bulkRemoveLabels() {
+    this.openBulkRemoveLabelsModal();
+  }
+
+  /**
+   * Open the multi-step bulk remove labels modal
+   */
+  openBulkRemoveLabelsModal() {
+    // Reset modal to step 1
+    this.bulkRemoveCurrentStep = 1;
+    this.showBulkRemoveStep(1);
+    
+    // Update label counts
+    this.updateBulkRemoveLabelCounts();
+    
+    // Show modal
+    document.getElementById('bulkRemoveLabelsModal').classList.remove('hidden');
+  }
+
+  /**
+   * Close bulk remove labels modal
+   */
+  closeBulkRemoveLabelsModal() {
+    document.getElementById('bulkRemoveLabelsModal').classList.add('hidden');
+    this.bulkRemoveCurrentStep = 1;
+  }
+
+  /**
+   * Show specific step in bulk remove modal
+   */
+  showBulkRemoveStep(step) {
+    // Hide all steps
+    document.querySelectorAll('.bulk-remove-step').forEach(stepEl => {
+      stepEl.classList.add('hidden');
+    });
+    
+    // Show current step
+    document.getElementById(`bulkRemoveStep${step}`).classList.remove('hidden');
+    this.bulkRemoveCurrentStep = step;
+  }
+
+  /**
+   * Update label counts in step 2
+   */
+  updateBulkRemoveLabelCounts() {
+    const saleCount = this.products.filter(p => p.on_sale === true).length;
+    const newCount = this.products.filter(p => p.is_new === true).length;
+    
+    document.getElementById('saleLabelsCount').textContent = `(${saleCount} producten)`;
+    document.getElementById('newLabelsCount').textContent = `(${newCount} producten)`;
+  }
+
+  /**
+   * Generate removal summary for step 3
+   */
+  generateRemovalSummary() {
+    const removeSale = document.getElementById('removeSaleLabels').checked;
+    const removeNew = document.getElementById('removeNewLabels').checked;
+    
+    if (!removeSale && !removeNew) {
+      return '<p class="text-gray-500 dark:text-gray-400">Geen labels geselecteerd</p>';
+    }
+    
+    let summary = '<ul class="space-y-1">';
+    
+    if (removeSale) {
+      const saleCount = this.products.filter(p => p.on_sale === true).length;
+      summary += `<li class="flex items-center text-red-600 dark:text-red-400">
+        <i class="fas fa-times-circle mr-2"></i>
+        🏷️ Aanbieding labels van ${saleCount} producten
+      </li>`;
+    }
+    
+    if (removeNew) {
+      const newCount = this.products.filter(p => p.is_new === true).length;
+      summary += `<li class="flex items-center text-red-600 dark:text-red-400">
+        <i class="fas fa-times-circle mr-2"></i>
+        ✨ Nieuw labels van ${newCount} producten
+      </li>`;
+    }
+    
+    summary += '</ul>';
+    return summary;
+  }
+
+  /**
+   * Execute the actual bulk removal
+   */
+  async executeBulkRemoveLabels() {
+    const removeSale = document.getElementById('removeSaleLabels').checked;
+    const removeNew = document.getElementById('removeNewLabels').checked;
+    
+    if (!removeSale && !removeNew) {
+      this.showToast('Geen labels geselecteerd', 'error');
       return;
     }
 
     try {
-      const updates = this.products.map(product => 
-        this.apiCall(`/.netlify/functions/admin-products?id=${product.id}`, {
-          method: 'PUT',
-          body: JSON.stringify({
-            ...product,
-            sale_badge: null,
-            new_badge: null
-          })
-        })
-      );
+      const updates = this.products.map(product => {
+        const updatedProduct = { ...product };
+        
+        if (removeSale && product.on_sale) {
+          updatedProduct.on_sale = false;
+          updatedProduct.sale_badge = null;
+        }
+        
+        if (removeNew && product.is_new) {
+          updatedProduct.is_new = false;
+          updatedProduct.new_badge = null;
+        }
+        
+        // Only update if changes were made
+        if (updatedProduct.on_sale !== product.on_sale || updatedProduct.is_new !== product.is_new) {
+          return this.apiCall(`/.netlify/functions/admin-products?id=${product.id}`, {
+            method: 'PUT',
+            body: JSON.stringify(updatedProduct)
+          });
+        }
+        
+        return Promise.resolve();
+      }).filter(update => update); // Remove null promises
       
       await Promise.all(updates);
       await this.loadData();
-      this.showToast('Alle labels verwijderd', 'success');
+      
+      const removedTypes = [];
+      if (removeSale) removedTypes.push('aanbieding');
+      if (removeNew) removedTypes.push('nieuw');
+      
+      this.showToast(`${removedTypes.join(' en ')} labels verwijderd`, 'success');
+      this.closeBulkRemoveLabelsModal();
+      
     } catch (error) {
       console.error('Error bulk removing labels:', error);
       this.showToast('Fout bij verwijderen labels', 'error');
+    }
+  }
+
+  /**
+   * Setup event listeners for bulk remove labels modal
+   */
+  setupBulkRemoveModalListeners() {
+    // Step 1 buttons
+    const step1Next = document.getElementById('bulkRemoveStep1Next');
+    const step1Cancel = document.getElementById('bulkRemoveStep1Cancel');
+    
+    if (step1Next) {
+      step1Next.addEventListener('click', () => {
+        this.showBulkRemoveStep(2);
+      });
+    }
+    
+    if (step1Cancel) {
+      step1Cancel.addEventListener('click', () => {
+        this.closeBulkRemoveLabelsModal();
+      });
+    }
+    
+    // Step 2 buttons
+    const step2Next = document.getElementById('bulkRemoveStep2Next');
+    const step2Back = document.getElementById('bulkRemoveStep2Back');
+    const step2Cancel = document.getElementById('bulkRemoveStep2Cancel');
+    
+    if (step2Next) {
+      step2Next.addEventListener('click', () => {
+        const removeSale = document.getElementById('removeSaleLabels').checked;
+        const removeNew = document.getElementById('removeNewLabels').checked;
+        
+        if (!removeSale && !removeNew) {
+          this.showToast('Selecteer ten minste één type label', 'error');
+          return;
+        }
+        
+        // Generate and show summary
+        document.getElementById('removalSummary').innerHTML = this.generateRemovalSummary();
+        this.showBulkRemoveStep(3);
+      });
+    }
+    
+    if (step2Back) {
+      step2Back.addEventListener('click', () => {
+        this.showBulkRemoveStep(1);
+      });
+    }
+    
+    if (step2Cancel) {
+      step2Cancel.addEventListener('click', () => {
+        this.closeBulkRemoveLabelsModal();
+      });
+    }
+    
+    // Step 3 buttons
+    const step3Confirm = document.getElementById('bulkRemoveStep3Confirm');
+    const step3Back = document.getElementById('bulkRemoveStep3Back');
+    const step3Cancel = document.getElementById('bulkRemoveStep3Cancel');
+    
+    if (step3Confirm) {
+      step3Confirm.addEventListener('click', () => {
+        this.executeBulkRemoveLabels();
+      });
+    }
+    
+    if (step3Back) {
+      step3Back.addEventListener('click', () => {
+        this.showBulkRemoveStep(2);
+      });
+    }
+    
+    if (step3Cancel) {
+      step3Cancel.addEventListener('click', () => {
+        this.closeBulkRemoveLabelsModal();
+      });
+    }
+    
+    // Close modal on background click
+    const modal = document.getElementById('bulkRemoveLabelsModal');
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target.id === 'bulkRemoveLabelsModal') {
+          this.closeBulkRemoveLabelsModal();
+        }
+      });
     }
   }
 
