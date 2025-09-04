@@ -1,3 +1,66 @@
+/* Loading Screen */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #1e1e1e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.3s ease-out; /* Faster transition */
+}
+
+.loading-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden; /* Extra insurance it doesn't block interactions */
+  z-index: -1; /* Move behind everything when faded */
+}
+
+.loading-content {
+  text-align: center;
+  animation: fadeIn 0.8s ease-in;
+}
+
+.loading-logo {
+  width: 8vh;
+  height: 8vh;
+  margin-bottom: 3vh;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.loading-text {
+  font-family: "futura-pt", sans-serif;
+  font-weight: 500;
+  font-size: 4vh;
+  color: #c19d6c;
+  margin-bottom: 3vh;
+  letter-spacing: 0.1em;
+}
+
+.loading-spinner {
+  width: 4vh;
+  height: 4vh;
+  border: 0.3vh solid rgba(193, 157, 108, 0.3);
+  border-top: 0.3vh solid #c19d6c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2vh); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 body {
   /* Team Pinas Background with dark overlay */
   background: linear-gradient(rgba(16, 16, 16, 0.6), rgba(16, 16, 16, 0.6)),
@@ -12,46 +75,47 @@ body {
   --logo-size: 36vh; /* Make logo size configurable */
   --body-height: calc(100vh - var(--header-height) - var(--footer-height));
   
-  /* CSS Grid Layout for entire page */
-  display: grid;
-  grid-template-rows: var(--header-height) 1fr var(--footer-height);
-  grid-template-areas: 
-    "header"
-    "main"
-    "footer";
-  
+  /* Remove grid, use fixed positioning instead */
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  overflow: clip !important;
+  overflow: hidden; /* Prevent body scrolling */
 }
 
 /* PAGE GRID AREAS */
 .SignageHeader {
-  grid-area: header;
-  z-index: 10;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  z-index: 100; /* High z-index to stay on top */
+  background: linear-gradient(rgba(16, 16, 16, 0.95), rgba(16, 16, 16, 0.85)); /* Slight background for readability */
 }
 
 .SignageBody {
-  grid-area: main;
+  position: fixed;
+  top: var(--header-height); /* Start below header */
+  bottom: var(--footer-height); /* End above footer */
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Align to top to leave room for footer */
-  padding: 2vh; /* Add padding for breathing room */
+  align-items: center; /* Center vertically for better 1-column appearance */
+  padding: 2vh;
   z-index: 5;
-  position: relative; /* Ensure proper stacking context */
-  /* Add moderate margin-top for logo overlap */
-  margin-top: 12vh; /* Moderate margin for good logo/content separation */
-  /* Ensure we don't push footer off screen */
-  overflow: hidden;
+  overflow-y: auto; /* Allow scrolling if content is too tall */
+  overflow-x: hidden;
 }
 
 .SignageFooter {
-  grid-area: footer;
-  z-index: 10;
-  /* Ensure footer is always visible */
-  position: relative;
-  min-height: var(--footer-height);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--footer-height);
+  z-index: 100; /* High z-index to stay on top */
+  background: linear-gradient(rgba(16, 16, 16, 0.85), rgba(16, 16, 16, 0.95)); /* Slight background for readability */
 }
 
 /* HEADER LAYOUT - CSS Grid */
@@ -134,6 +198,29 @@ body {
   min-height: 4vh; /* Ensure consistent height */
 }
 
+.MenuItem.on-sale {
+  /* Highlight background for sale items */
+  background-color: rgba(255, 193, 7, 0.1); /* Subtle gold background */
+  border-left: 3px solid #c19d6c; /* Team Pinas gold accent */
+  padding-left: 1vh; /* Add padding for border */
+  border-radius: 0.3rem;
+}
+
+.MenuItem.is-new {
+  /* Highlight background for new items */
+  background-color: rgba(34, 197, 94, 0.1); /* Subtle green background */
+  border-left: 3px solid #22c55e; /* Fresh green accent */
+  padding-left: 1vh; /* Add padding for border */
+  border-radius: 0.3rem;
+}
+
+.MenuItem.on-sale.is-new {
+  /* Both sale and new - combine both effects */
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 50%, rgba(34, 197, 94, 0.1) 50%);
+  border-left: 3px solid;
+  border-image: linear-gradient(45deg, #c19d6c, #22c55e) 1;
+}
+
 .MenuItemType {
   flex: 1;
   font-family: "coolvetica", sans-serif;
@@ -144,6 +231,56 @@ body {
   padding: 0.2vh 0; /* Remove horizontal padding */
   z-index: 2;
   position: relative;
+}
+
+.sale-badge {
+  display: inline-block;
+  background: linear-gradient(45deg, #c19d6c, #d4af74);
+  color: #1a1a1a;
+  font-size: 1.8vh;
+  font-weight: bold;
+  padding: 0.3vh 0.8vh;
+  border-radius: 0.8vh;
+  margin-left: 1vh;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.new-badge {
+  display: inline-block;
+  background: linear-gradient(45deg, #22c55e, #16a34a);
+  color: #ffffff;
+  font-size: 1.8vh;
+  font-weight: bold;
+  padding: 0.3vh 0.8vh;
+  border-radius: 0.8vh;
+  margin-left: 1vh;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  animation: sparkle 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes sparkle {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+  25% { 
+    opacity: 0.9; 
+    transform: scale(1.05);
+  }
+  75% { 
+    opacity: 0.95; 
+    transform: scale(1.02);
+  }
 }
 
 .MenuFoodItem {
@@ -215,9 +352,8 @@ body {
   gap: 4vh; /* Good gap between columns */
   width: 94%; /* Leave more room for centering */
   max-width: none;
-  /* Leave room for footer - balanced approach */
-  max-height: calc(var(--body-height) - 8vh); /* More generous content space, minimal footer buffer */
-  height: auto; /* Let content determine height */
+  /* Fill available space between header and footer */
+  height: 100%; /* Use full height of SignageBody */
   
   /* Dynamic layout based on column setting */
   grid-template-columns: repeat(var(--columns, 2), 1fr);
@@ -231,7 +367,10 @@ body {
 /* When 1 column: single centered slot */
 .MenuContainer[data-columns="1"] {
   grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
+  grid-template-rows: auto;
+  place-items: center; /* Center content in the available space */
+  max-width: 90%; /* Don't use full width for better appearance */
+  margin: 0 auto; /* Center the container */
 }
 
 /* When 2 columns: 1 row, 2 columns with equal heights */  
@@ -250,23 +389,22 @@ body {
 .CategorySlot[data-slot="0"] { display: none; }
 .CategorySlot[data-slot="3"] { display: none; }
 
-/* 1-column layout overrides */
-.MenuContainer[data-columns="1"] {
-  /* Center the single column and adjust height */
-  justify-content: center;
-  align-items: center;
-}
+/* 1-column layout overrides - already centered above */
 
 /* Show only slot 1 in 1-column mode, hide others */
 .MenuContainer[data-columns="1"] .CategorySlot[data-slot="0"] { display: none; }
 .MenuContainer[data-columns="1"] .CategorySlot[data-slot="1"] { 
   display: flex;
+  flex-direction: column;
   grid-area: 1 / 1;
-  /* Content-fitted height for 1-column mode */
-  height: auto;
-  min-height: auto; /* Let content determine height */
-  max-height: 65vh; /* More generous height for single column */
-  align-self: start; /* No stretching in single column */
+  /* Better sizing for single column with fixed layout */
+  width: 100%;
+  max-width: 900px; /* Reasonable max width for readability */
+  height: fit-content;
+  max-height: calc(100% - 4vh); /* Use available space in SignageBody */
+  overflow-y: auto; /* Allow scrolling if content is too tall */
+  overflow-x: hidden;
+  margin: auto; /* Center in the available space */
 }
 .MenuContainer[data-columns="1"] .CategorySlot[data-slot="2"] { display: none; }
 .MenuContainer[data-columns="1"] .CategorySlot[data-slot="3"] { display: none; }
@@ -282,17 +420,38 @@ body {
   /* Let content determine height with reasonable bounds */
   height: auto;
   min-height: auto; /* No artificial minimum */
-  max-height: 55vh; /* More generous height for content */
+  max-height: 100%; /* Use full available height in container */
   
-  /* Handle overflow with hidden (no scrolling) */
-  overflow: hidden;
+  /* Handle overflow */
+  overflow-y: auto; /* Allow scrolling when needed */
+  overflow-x: hidden;
   
   /* Consistent display properties */
   display: flex;
   flex-direction: column;
   
-  /* Ensure slots in same row have equal height */
+  /* Ensure slots in same row have equal height in 2-column */
   align-self: stretch; /* Fill the grid area */
+}
+
+/* Custom scrollbar for better appearance */
+.CategorySlot::-webkit-scrollbar {
+  width: 0.5vh;
+}
+
+.CategorySlot::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.25vh;
+}
+
+.CategorySlot::-webkit-scrollbar-thumb {
+  background: #c19d6c;
+  border-radius: 0.25vh;
+  opacity: 0.7;
+}
+
+.CategorySlot::-webkit-scrollbar-thumb:hover {
+  opacity: 1;
 }
 
 hr {
@@ -300,18 +459,28 @@ hr {
   width: 100%;
 }
 
-@keyframes scrollText {
-  from {
-    transform: translateX(0);
+@keyframes scrollTextContinuous {
+  0% {
+    transform: translateX(0%);
   }
-  to {
+  100% {
     transform: translateX(-50%);
+  }
+}
+
+@keyframes scrollTextDiscrete {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
   }
 }
 
 .ScrollingText span {
   display: inline-block;
-  animation: scrollText 30s linear infinite; /* default duration; JS will adjust */
+  padding-left: 100%; /* Start from right edge */
+  animation: scrollTextContinuous 30s linear infinite; /* default duration; JS will adjust */
   white-space: nowrap;
   will-change: transform;
   vertical-align: middle; /* Ensure proper vertical alignment */

@@ -1,4 +1,78 @@
+// Debug Mode Implementation - check if debug is enabled
+let debugMode = localStorage.getItem('debugMode') === 'true';
+let originalConsole = {
+  log: console.log,
+  warn: console.warn,
+  error: console.error,
+  info: console.info,
+  debug: console.debug
+};
+
+// Apply debug mode on page load
+if (!debugMode) {
+  console.log = () => {};
+  console.warn = () => {};
+  console.info = () => {};
+  console.debug = () => {};
+  // Keep console.error for critical issues
+}
+
+// Hide loading screen when menu data is ready
+function hideLoadingScreenWhenReady() {
+  let attempts = 0;
+  const maxAttempts = 10; // Max 1 second (10 * 100ms) - much faster!
+  
+  // Check if menu data has been loaded and rendered
+  const checkDataReady = () => {
+    const menuItems = document.querySelectorAll('.MenuItem');
+    const hasMenuData = menuItems.length > 0;
+    
+    if (hasMenuData) {
+      console.log('Menu data rendered, hiding loading screen...');
+      hideLoadingScreen();
+    } else if (attempts < maxAttempts) {
+      // Data not ready yet, check again after a short delay
+      attempts++;
+      setTimeout(checkDataReady, 100); // Check more frequently
+    } else {
+      // Safety timeout - hide loading screen even if no data loaded
+      console.warn('Loading screen timeout - hiding anyway after 1 second');
+      hideLoadingScreen();
+    }
+  };
+  
+  // Start checking immediately - no delay needed
+  checkDataReady();
+}
+
+// Actually hide the loading screen with animation
+function hideLoadingScreen() {
+  const loadingScreen = document.getElementById('loadingScreen');
+  if (loadingScreen) {
+    loadingScreen.classList.add('fade-out');
+    setTimeout(() => {
+      // Force remove the element completely
+      const screen = document.getElementById('loadingScreen');
+      if (screen) {
+        screen.style.display = 'none';
+        screen.remove();
+      }
+      console.log('🚀 Loading screen hidden - menu ready!');
+    }, 300); // Faster fade out
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
+  // Also hide loading screen after DOM is ready as a fallback
+  setTimeout(() => {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+      console.warn('Loading screen still visible after DOM ready - forcing removal');
+      loadingScreen.style.display = 'none';
+      loadingScreen.remove();
+    }
+  }, 2000); // 2 second max wait
+
   // Getting the span element
   var dayTitleSpan = document.getElementById("DayTitle");
 
@@ -46,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
 class DisplaySettings {
   constructor() {
     this.settings = {};
-    this.loaded = false;
+    this.loadSettings();
   }
 
   async loadSettings() {
@@ -74,7 +148,6 @@ class DisplaySettings {
     
     // Apply column layout
     this.applyColumnLayout();
-    this.loaded = true;
   }
 
   applyColumnLayout() {
@@ -94,7 +167,8 @@ class DisplaySettings {
 
   applyLayoutHeights() {
     const headerHeight = parseInt(this.settings.header_height) || 15;
-    const footerHeight = parseFloat(this.settings.footer_height) || 7.8; // Match CSS default
+    const footerEnabled = this.settings.footer_enabled !== false; // Default to true if not specified
+    const footerHeight = footerEnabled ? (parseFloat(this.settings.footer_height) || 7.8) : 0; // 0 if disabled
     const logoSize = parseInt(this.settings.logo_size) || 36; // Match CSS default
     
     // Set CSS custom properties on body element
@@ -103,7 +177,23 @@ class DisplaySettings {
     document.body.style.setProperty('--logo-size', `${logoSize}vh`);
     document.body.style.setProperty('--body-height', `calc(100vh - ${headerHeight}vh - ${footerHeight}vh)`);
     
-    console.log(`Applied header: ${headerHeight}vh, footer: ${footerHeight}vh, logo: ${logoSize}vh`);
+    // Hide/show footer based on setting
+    const footerElement = document.querySelector('.SignageFooter');
+    if (footerElement) {
+      if (footerEnabled) {
+        footerElement.style.display = '';
+      } else {
+        footerElement.style.display = 'none';
+      }
+    }
+    
+    // Adjust body bottom to account for footer
+    const bodyElement = document.querySelector('.SignageBody');
+    if (bodyElement) {
+      bodyElement.style.bottom = `${footerHeight}vh`;
+    }
+    
+    console.log(`Applied header: ${headerHeight}vh, footer: ${footerEnabled ? footerHeight + 'vh' : 'disabled'}, logo: ${logoSize}vh`);
   }
 
   getColumnCount() {
@@ -111,23 +201,29 @@ class DisplaySettings {
   }
 }
 
-// Initialize display settings globally
+// Initialize display settings
 const displaySettings = new DisplaySettings();
 
-// Main initialization function
-async function initializeSignage() {
+// Products rendering and rotation
+document.addEventListener("DOMContentLoaded", function () {
   const SLOTS = [".CategorySlot[data-slot='1']", ".CategorySlot[data-slot='2']", ".CategorySlot[data-slot='3']", ".CategorySlot[data-slot='0']"];
   const PRIMARY_SLOT = SLOTS[0]; // Now points to slot 1
   let ROTATE_INTERVAL_MS = 6000; // Default, will be updated from settings
   
-  // Load settings first and wait for completion
-  console.log('Loading display settings...');
-  await displaySettings.loadSettings();
-  
-  // Update rotation interval from settings
-  ROTATE_INTERVAL_MS = parseInt(displaySettings.settings.rotation_interval) || 6000;
-  console.log(`Updated rotation interval to ${ROTATE_INTERVAL_MS}ms`);
-  
+  // Load settings and products in parallel for faster initialization
+  const initPromises = [
+    displaySettings.loadSettings().then(() => {
+      ROTATE_INTERVAL_MS = parseInt(displaySettings.settings.rotation_interval) || 6000;
+      console.log(`Updated rotation interval to ${ROTATE_INTERVAL_MS}ms`);
+    }),
+    // Products will be loaded by setupAndInit() 
+  ];
+
+  Promise.all(initPromises).then(() => {
+    console.log('⚡ Parallel initialization complete');
+  }).catch(error => {
+    console.warn('Some initialization failed, continuing anyway:', error);
+  });
 
   // Strip technical prefixes from names (e.g., "A Cola" -> "Cola")
   function cleanName(name) {
@@ -163,9 +259,21 @@ async function initializeSignage() {
     let itemsHtml = '<div class="MenuItemsContainer">';
     const list = Array.isArray(itemsOverride) ? itemsOverride : (category.items || []);
     list.forEach((it) => {
+      // CSS classes for special styling
+      const specialClasses = [];
+      if (it.on_sale) specialClasses.push('on-sale');
+      if (it.is_new) specialClasses.push('is-new');
+      const itemClass = specialClasses.length > 0 ? ` ${specialClasses.join(' ')}` : '';
+      
+      // Badge elements
+      const badges = [];
+      if (it.on_sale) badges.push('<span class="sale-badge">Aanbieding</span>');
+      if (it.is_new) badges.push('<span class="new-badge">Nieuw</span>');
+      const badgesHtml = badges.join('');
+      
       itemsHtml += `
-        <div class="MenuItem">
-          <div class="MenuItemType">${cleanName(it.name)}</div>
+        <div class="MenuItem${itemClass}">
+          <div class="MenuItemType">${cleanName(it.name)}${badgesHtml}</div>
           <div class="MenuFoodItem">${euro(it.price)}</div>
         </div>
       `;
@@ -193,10 +301,16 @@ async function initializeSignage() {
       return await response.json();
     }
   };
+  
+  // Start loading products immediately for faster initial display
+  const productsPromise = loadProducts();
 
-  loadProducts()
+  // Use the pre-loaded promise instead of starting a new load
+  productsPromise
     .then((data) => {
+      console.log("Initial data loaded:", data);
       const categories = Array.isArray(data.categories) ? data.categories : [];
+      console.log("Initial categories:", categories.map(c => c.title));
       if (categories.length === 0) {
         SLOTS.forEach((s) => (document.querySelector(s).innerHTML = ""));
         return;
@@ -297,13 +411,40 @@ async function initializeSignage() {
             renderCategory(SLOTS[0], currentCategory, slotItems);
           }
         } else {
-          // Two slot mode - STRICT 8-item limit per slot
-          const MAX_ITEMS_PER_SLOT = 8;
+          // Two slot mode - Use visibleCount for consistency with rotation logic
+          const MAX_ITEMS_PER_SLOT = Math.min(visibleCount, 8); // Respect computed visible count but cap at 8
           
           if (totalItems > MAX_ITEMS_PER_SLOT) {
-            // Split current category across 2 slots, max 8 items each
+            // Split current category across 2 slots based on pagination
+            const start = pagePartIndex * MAX_ITEMS_PER_SLOT;
+            const end = Math.min(totalItems, start + MAX_ITEMS_PER_SLOT * 2);
             
-            // Slot 1: First 8 items
+            // Slot 1: Current page items
+            const slot1El = document.querySelector(SLOTS[0]);
+            if (slot1El) {
+              slot1El.style.display = "block";
+              const slot1Items = items.slice(start, Math.min(end, start + MAX_ITEMS_PER_SLOT));
+              renderCategory(SLOTS[0], currentCategory, slot1Items);
+            }
+            
+            // Slot 2: Next page items (if available)
+            const slot2El = document.querySelector(SLOTS[1]);
+            if (slot2El && start + MAX_ITEMS_PER_SLOT < end) {
+              slot2El.style.display = "block";
+              const slot2Items = items.slice(start + MAX_ITEMS_PER_SLOT, end);
+              renderCategory(SLOTS[1], currentCategory, slot2Items);
+            } else if (slot2El) {
+              // If no more items in current category, show next category
+              const nextCategoryIndex = (categoryIndex + 1) % categories.length;
+              const nextCategory = categories[nextCategoryIndex];
+              if (nextCategory) {
+                slot2El.style.display = "block";
+                const nextItems = (nextCategory.items || []).slice(0, MAX_ITEMS_PER_SLOT);
+                renderCategory(SLOTS[1], nextCategory, nextItems);
+              }
+            }
+          } else {
+            // Show current category in slot 1, next category in slot 2
             const slot1El = document.querySelector(SLOTS[0]);
             if (slot1El) {
               slot1El.style.display = "block";
@@ -311,29 +452,13 @@ async function initializeSignage() {
               renderCategory(SLOTS[0], currentCategory, slot1Items);
             }
             
-            // Slot 2: Next 8 items with same category title
-            const slot2El = document.querySelector(SLOTS[1]);
-            if (slot2El) {
-              slot2El.style.display = "block";
-              const slot2Items = items.slice(MAX_ITEMS_PER_SLOT, MAX_ITEMS_PER_SLOT * 2);
-              renderCategory(SLOTS[1], currentCategory, slot2Items);
-            }
-          } else {
-            // Show current category in slot 1 (max 8 items), next category in slot 2
-            const slot1El = document.querySelector(SLOTS[0]);
-            if (slot1El) {
-              slot1El.style.display = "block";
-              const slot1Items = items.slice(0, MAX_ITEMS_PER_SLOT); // Ensure max 8
-              renderCategory(SLOTS[0], currentCategory, slot1Items);
-            }
-            
-            // Show next category in slot 2 (max 8 items)
+            // Show next category in slot 2
             const nextCategoryIndex = (categoryIndex + 1) % categories.length;
             const nextCategory = categories[nextCategoryIndex];
             const slot2El = document.querySelector(SLOTS[1]);
             if (slot2El && nextCategory) {
               slot2El.style.display = "block";
-              const nextItems = (nextCategory.items || []).slice(0, MAX_ITEMS_PER_SLOT); // Ensure max 8
+              const nextItems = (nextCategory.items || []).slice(0, MAX_ITEMS_PER_SLOT);
               renderCategory(SLOTS[1], nextCategory, nextItems);
             }
           }
@@ -351,6 +476,9 @@ async function initializeSignage() {
 
       // initial render
       renderDynamicSlots();
+
+      // Hide loading screen after menu data is properly rendered
+      hideLoadingScreenWhenReady();
 
       // Re-measure once web fonts have finished loading (prevents underestimation)
       if (document.fonts && document.fonts.ready) {
@@ -373,12 +501,17 @@ async function initializeSignage() {
           const items = categories[categoryIndex].items || [];
           const totalParts = Math.max(1, Math.ceil(items.length / Math.max(1, visibleCount)));
           
+          console.log(`Category: ${categories[categoryIndex].title} (${categoryIndex}), pagePartIndex: ${pagePartIndex}, totalParts: ${totalParts}, visibleCount: ${visibleCount}`);
+          
           if (pagePartIndex >= totalParts) {
+            const oldCategoryIndex = categoryIndex;
             pagePartIndex = 0;
             categoryIndex = (categoryIndex + 1) % categories.length;
+            console.log(`Advancing from category ${oldCategoryIndex} (${categories[oldCategoryIndex].title}) to ${categoryIndex} (${categories[categoryIndex].title})`);
           }
         } else {
           // Skip empty categories
+          console.log(`Skipping empty category ${categoryIndex}: ${categories[categoryIndex]?.title || 'undefined'}`);
           pagePartIndex = 0;
           categoryIndex = (categoryIndex + 1) % categories.length;
         }
@@ -396,16 +529,36 @@ async function initializeSignage() {
             // Only update if data has actually changed
             if (JSON.stringify(newData) !== JSON.stringify(data)) {
               console.log("CMS data updated, refreshing display");
+              console.log("New categories from CMS:", newData.categories?.map(c => c.title));
               
-              // Clear cache and restart rotation
+              // Preserve current rotation position when possible
+              const currentCategoryTitle = categories[categoryIndex]?.title;
+              
+              // Clear cache but preserve rotation state
               visibleCountCache.clear();
-              categoryIndex = 0;
-              pagePartIndex = 0;
               
               // Update categories with new data
               const newCategories = Array.isArray(newData.categories) ? newData.categories : [];
               categories.length = 0;
               categories.push(...newCategories);
+              
+              // Try to find the same category in the new data to preserve position
+              if (currentCategoryTitle) {
+                const newIndex = categories.findIndex(cat => cat.title === currentCategoryTitle);
+                if (newIndex !== -1) {
+                  categoryIndex = newIndex;
+                  console.log(`Preserved rotation position at category: ${currentCategoryTitle} (${newIndex})`);
+                } else {
+                  categoryIndex = 0;
+                  pagePartIndex = 0;
+                  console.log("Could not preserve position, resetting to start");
+                }
+              } else {
+                categoryIndex = 0;
+                pagePartIndex = 0;
+              }
+              
+              console.log("Updated categories array:", categories.map(c => c.title));
               
               // Re-render all slots
               renderDynamicSlots();
@@ -422,29 +575,15 @@ async function initializeSignage() {
         window.addEventListener('cms-reconnected', refreshData);
       }
     })
-    .catch((err) => {
-      console.error("Error loading products data", err);
-      // Show error message in slots if products fail to load
-      SLOTS.forEach((s) => {
-        const slotEl = document.querySelector(s);
-        if (slotEl) {
-          slotEl.innerHTML = '<div class="CategoryTitle">Loading Error</div><div class="MenuItem"><div class="MenuItemType">Products could not be loaded</div><div class="MenuFoodItem">Please check connection</div></div>';
-        }
-      });
-    });
+    .catch((err) => console.error("Error loading products data", err));
+});
 
-  // Initialize footer after main initialization
-  initializeFooter();
-}
-
-// Footer Management
-function initializeFooter() {
-  console.log('Initializing footer...');
+document.addEventListener("DOMContentLoaded", function () {
   const scrollingTextSpan = document.querySelector(".ScrollingText span");
 
   // Footer slideshow management
   let footerSpeed = 30; // Default pixels per second
-  let footerText = "Investeer in jezelf of in je kind – personal training vanaf €37,50 per les. Begin vandaag nog!||Interesse? Meld je bij de bar of stuur ons een mailtje.";
+  let footerText = ""; // No fallback content - only show footer if database has content
   let footerContinuous = true; // Default to continuous scrolling
 
   function updateFooterContent() {
@@ -452,6 +591,20 @@ function initializeFooter() {
     
     // Split text by custom separator and add SVG dividers
     const textParts = footerText.split('||').filter(part => part.trim());
+    
+    // Hide footer if no content
+    const footerContainer = document.querySelector('.Footer');
+    if (textParts.length === 0 || !footerText.trim()) {
+      if (footerContainer) {
+        footerContainer.style.display = 'none';
+      }
+      return;
+    } else {
+      if (footerContainer) {
+        footerContainer.style.display = 'block';
+      }
+    }
+    
     let htmlContent = '';
     
     // Create the scrolling content with SVG separators
@@ -462,75 +615,110 @@ function initializeFooter() {
     });
     
     if (footerContinuous) {
-      // Duplicate the content for seamless continuous scrolling
-      scrollingTextSpan.innerHTML = htmlContent + htmlContent;
+      // Voor echte continue scrolling: dupliceer de content meerdere keren voor seamless loop
+      // Add enough repetitions to ensure no gap
+      const repetitions = 3; // Repeat content 3 times for seamless scrolling
+      let repeatedContent = '';
+      for (let i = 0; i < repetitions; i++) {
+        repeatedContent += htmlContent + '&nbsp;&nbsp;&nbsp;&nbsp;'; // Small space between repetitions
+      }
+      scrollingTextSpan.innerHTML = repeatedContent;
+      scrollingTextSpan.style.animationName = 'scrollTextContinuous';
     } else {
-      // Single content with natural end/start gap
+      // Discrete mode: enkele content met natuurlijke pauze
       scrollingTextSpan.innerHTML = htmlContent;
+      scrollingTextSpan.style.animationName = 'scrollTextDiscrete';
     }
   }
 
   function setAnimationDuration() {
     if (!scrollingTextSpan) return;
     
+    const containerWidth = scrollingTextSpan.parentElement.offsetWidth;
     let spanWidth = scrollingTextSpan.offsetWidth;
     
-    if (footerContinuous) {
-      // Get half the width since the text is duplicated for seamless loop
-      spanWidth = spanWidth / 2;
+    let totalDistance;
+    
+    if (footerContinuous && spanWidth > 0) {
+      // Continuous: scroll exactly 1/3 of content (since we repeat 3 times)
+      // This ensures seamless looping
+      totalDistance = spanWidth / 3;
+    } else {
+      // Discrete: van 100% naar -100% = 200% van container breedte  
+      totalDistance = spanWidth + (2 * containerWidth); // Volledige span + 200% container
     }
     
     // Calculate duration based on speed setting (pixels per second)
-    const duration = spanWidth / footerSpeed;
+    const duration = totalDistance / footerSpeed;
     scrollingTextSpan.style.animationDuration = duration + "s";
+    
+    console.log(`Animation: ${footerContinuous ? 'continuous' : 'discrete'}, spanWidth: ${spanWidth}px, containerWidth: ${containerWidth}px, totalDistance: ${totalDistance}px, duration: ${duration}s`);
   }
 
   // Load footer settings from CMS
   async function loadFooterSettings() {
-    if (displaySettings && displaySettings.settings) {
+    console.log('loadFooterSettings called');
+    console.log('displaySettings:', displaySettings);
+    console.log('displaySettings.settings:', displaySettings?.settings);
+    
+    if (displaySettings && displaySettings.settings && displaySettings.settings.footer_text) {
       footerSpeed = parseInt(displaySettings.settings.footer_speed) || 30;
-      footerText = displaySettings.settings.footer_text || footerText;
+      footerText = displaySettings.settings.footer_text.trim();
       footerContinuous = displaySettings.settings.footer_continuous !== false; // Default to true
       
-      console.log(`Footer settings loaded - Speed: ${footerSpeed}px/s, Continuous: ${footerContinuous}, Text: ${footerText.substring(0, 50)}...`);
+      console.log('Database footer settings:');
+      console.log(`  footer_speed: ${displaySettings.settings.footer_speed} -> ${footerSpeed}`);
+      console.log(`  footer_text: ${displaySettings.settings.footer_text}`);
+      console.log(`  footer_continuous: ${displaySettings.settings.footer_continuous} -> ${footerContinuous}`);
       
-      updateFooterContent();
-      setAnimationDuration();
+      // Only show footer if we have actual content from database
+      if (footerText) {
+        console.log(`Footer settings loaded - Speed: ${footerSpeed}px/s, Continuous: ${footerContinuous}, Text: ${footerText.substring(0, 50)}...`);
+        
+        // Show footer with database content
+        const footerContainer = document.querySelector('.Footer');
+        if (footerContainer) {
+          footerContainer.style.display = 'block';
+          console.log('Footer shown with database content');
+        }
+        
+        updateFooterContent();
+        setAnimationDuration();
+      } else {
+        console.log('Empty footer text in database, hiding footer');
+        const footerContainer = document.querySelector('.Footer');
+        if (footerContainer) {
+          footerContainer.style.display = 'none';
+        }
+      }
+    } else {
+      console.log('No footer content in database, hiding footer');
+      const footerContainer = document.querySelector('.Footer');
+      if (footerContainer) {
+        footerContainer.style.display = 'none';
+      }
     }
   }
 
-  // Initial setup
-  updateFooterContent();
-  setAnimationDuration();
+  // Hide footer initially until settings are loaded
+  const footerContainer = document.querySelector('.Footer');
+  if (footerContainer) {
+    footerContainer.style.display = 'none';
+    console.log('Footer hidden initially, waiting for settings');
+  }
 
-  // Load settings when available - displaySettings should already be loaded at this point
-  if (displaySettings && displaySettings.loaded) {
-    loadFooterSettings();
+  // Load settings when available
+  if (displaySettings) {
+    displaySettings.loadSettings().then(() => {
+      loadFooterSettings();
+    });
   } else {
-    // Wait a bit for display settings to load if not ready yet
-    setTimeout(() => {
-      if (displaySettings && displaySettings.loaded) {
-        loadFooterSettings();
-      }
-    }, 500);
+    // Fallback if displaySettings not available
+    console.log('No displaySettings available, keeping footer hidden');
   }
 
   // Restart the animation when it ends to simulate an infinite scroll
-  if (scrollingTextSpan) {
-    scrollingTextSpan.addEventListener("animationiteration", () => {
-      setAnimationDuration();
-    });
-  }
-}
-
-// Products rendering and rotation - single DOMContentLoaded listener
-document.addEventListener("DOMContentLoaded", async function () {
-  console.log('DOM Content Loaded, initializing signage...');
-  
-  try {
-    await initializeSignage();
-    console.log('Signage initialization complete');
-  } catch (err) {
-    console.error('Failed to initialize signage:', err);
-  }
+  scrollingTextSpan.addEventListener("animationiteration", () => {
+    setAnimationDuration();
+  });
 });
