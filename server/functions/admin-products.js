@@ -152,7 +152,7 @@ async function updateProduct(client, headers, data, productId) {
     };
   }
 
-  const { name, category_id, price, description, display_order, active } = data;
+  const { name, category_id, price, description, display_order, active, is_new, on_sale } = data;
   
   // Validate category exists if category_id is being updated
   if (category_id) {
@@ -168,12 +168,13 @@ async function updateProduct(client, headers, data, productId) {
   
   const query = `
     UPDATE products 
-    SET name = $1, category_id = $2, price = $3, description = $4, display_order = $5, active = $6, updated_at = CURRENT_TIMESTAMP
-    WHERE id = $7
+    SET name = $1, category_id = $2, price = $3, description = $4, display_order = $5, active = $6, 
+        is_new = $7, on_sale = $8, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $9
     RETURNING *
   `;
   
-  const result = await client.query(query, [name, category_id, price, description, display_order, active, productId]);
+  const result = await client.query(query, [name, category_id, price, description, display_order, active, is_new, on_sale, productId]);
   
   if (result.rows.length === 0) {
     return {

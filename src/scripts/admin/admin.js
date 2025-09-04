@@ -1667,11 +1667,23 @@ class AdminInterface {
    * Filter products based on current filters and render them
    */
   filterAndRenderProducts() {
+    console.log('=== FILTER DEBUG ===');
+    console.log('Total products:', this.products.length);
+    console.log('Badge filter:', this.badgeFilter);
+    console.log('Selected category:', this.selectedCategoryId);
+    console.log('Search term:', this.searchTerm);
+    console.log('Status filter:', this.statusFilter);
+    
     let filtered = this.products;
+
+    // Log products with "new" labels
+    const productsWithNewLabel = this.products.filter(p => p.is_new === true);
+    console.log('Products with is_new=true:', productsWithNewLabel.length, productsWithNewLabel.map(p => ({ id: p.id, name: p.name, is_new: p.is_new })));
 
     // Filter by selected category
     if (this.selectedCategoryId !== null) {
       filtered = filtered.filter(p => p.category_id === this.selectedCategoryId);
+      console.log('After category filter:', filtered.length);
     }
 
     // Filter by search term
@@ -1680,6 +1692,7 @@ class AdminInterface {
         p.name.toLowerCase().includes(this.searchTerm) ||
         (p.description && p.description.toLowerCase().includes(this.searchTerm))
       );
+      console.log('After search filter:', filtered.length);
     }
 
     // Filter by status
@@ -1689,10 +1702,13 @@ class AdminInterface {
       } else if (this.statusFilter === 'inactive') {
         filtered = filtered.filter(p => p.active === false);
       }
+      console.log('After status filter:', filtered.length);
     }
 
     // Filter by badge
     if (this.badgeFilter) {
+      console.log('Applying badge filter:', this.badgeFilter);
+      const beforeBadgeFilter = filtered.length;
       if (this.badgeFilter === 'sale') {
         filtered = filtered.filter(p => p.on_sale === true);
       } else if (this.badgeFilter === 'new') {
@@ -1700,12 +1716,18 @@ class AdminInterface {
       } else if (this.badgeFilter === 'none') {
         filtered = filtered.filter(p => !p.on_sale && !p.is_new);
       }
+      console.log(`After badge filter: ${filtered.length} (was ${beforeBadgeFilter})`);
+      console.log('Filtered products with new badge:', filtered.filter(p => p.is_new).map(p => ({ id: p.id, name: p.name, is_new: p.is_new })));
     }
 
     // Filter by category (for All Products view)
     if (this.categoryFilterAllProducts && this.selectedCategoryId === null) {
       filtered = filtered.filter(p => p.category_id == this.categoryFilterAllProducts);
+      console.log('After category filter (all products):', filtered.length);
     }
+
+    console.log('Final filtered count:', filtered.length);
+    console.log('=== END FILTER DEBUG ===');
 
     this.filteredProducts = filtered;
     this.renderFilteredProducts();
@@ -1999,21 +2021,33 @@ class AdminInterface {
     }
 
     try {
+      console.log('=== BULK LABEL REMOVAL DEBUG ===');
+      console.log('Remove sale labels:', removeSale);
+      console.log('Remove new labels:', removeNew);
+      console.log('Current badge filter:', this.badgeFilter);
+      console.log('Total products before filtering:', this.products.length);
+      
+      // Count affected products before making changes
+      let affectedProducts = 0;
       const updates = this.products.map(product => {
         const updatedProduct = { ...product };
+        let hasChanges = false;
         
         if (removeSale && product.on_sale) {
+          console.log(`Removing sale label from product ${product.id}: ${product.name}`);
           updatedProduct.on_sale = false;
-          updatedProduct.sale_badge = null;
+          hasChanges = true;
         }
         
         if (removeNew && product.is_new) {
+          console.log(`Removing new label from product ${product.id}: ${product.name}`);
           updatedProduct.is_new = false;
-          updatedProduct.new_badge = null;
+          hasChanges = true;
         }
         
         // Only update if changes were made
-        if (updatedProduct.on_sale !== product.on_sale || updatedProduct.is_new !== product.is_new) {
+        if (hasChanges) {
+          affectedProducts++;
           return this.apiCall(`/.netlify/functions/admin-products?id=${product.id}`, {
             method: 'PUT',
             body: JSON.stringify(updatedProduct)
@@ -2023,19 +2057,55 @@ class AdminInterface {
         return Promise.resolve();
       }).filter(update => update); // Remove null promises
       
-      await Promise.all(updates);
+      console.log(`Found ${affectedProducts} products to update`);
+      console.log(`Executing ${updates.length} API calls for label removal`);
+      
+      if (updates.length === 0) {
+        console.log('No products needed updating');
+        this.showToast('Geen producten gevonden om bij te werken', 'error');
+        return;
+      }
+      
+      const results = await Promise.all(updates);
+      console.log('API call results:', results.map((r, i) => ({ index: i, ok: r.ok, status: r.status })));
+      
+      // Invalidate cache BEFORE reloading data
+      console.log('Invalidating frontend cache...');
+      this.invalidateFrontendCache();
+      
+      console.log('Label updates completed, reloading data...');
       await this.loadData();
+      console.log('Data reload completed. New product count:', this.products.length);
+      
+      // Check if we need to reset badge filter
+      const shouldResetFilter = (removeSale && this.badgeFilter === 'sale') || (removeNew && this.badgeFilter === 'new');
+      console.log('Should reset filter?', shouldResetFilter);
+      
+      if (shouldResetFilter) {
+        console.log('Resetting badge filter from', this.badgeFilter, 'to empty');
+        this.badgeFilter = '';
+        const badgeFilterSelect = document.getElementById('badgeFilter');
+        if (badgeFilterSelect) {
+          badgeFilterSelect.value = '';
+          console.log('Updated badge filter select element');
+        }
+      }
       
       const removedTypes = [];
       if (removeSale) removedTypes.push('aanbieding');
       if (removeNew) removedTypes.push('nieuw');
       
-      this.showToast(`${removedTypes.join(' en ')} labels verwijderd`, 'success');
+      this.showToast(`${removedTypes.join(' en ')} labels verwijderd van ${affectedProducts} producten`, 'success');
       this.closeBulkRemoveLabelsModal();
+      
+      // Force re-render products
+      console.log('Force re-rendering products...');
+      this.filterAndRenderProducts();
+      console.log('=== BULK LABEL REMOVAL COMPLETE ===');
       
     } catch (error) {
       console.error('Error bulk removing labels:', error);
-      this.showToast('Fout bij verwijderen labels', 'error');
+      this.showToast('Fout bij verwijderen labels: ' + error.message, 'error');
     }
   }
 
