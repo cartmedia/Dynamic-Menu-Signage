@@ -108,10 +108,7 @@ class AdminInterface {
       console.error('addFooterLine button NOT FOUND');
     }
 
-    // Category filter
-    safeAddEventListener('categoryFilter', 'change', (e) => {
-      this.filterProducts(e.target.value);
-    });
+    // Category filter removed - now using categoryFilterAllProducts in setupEventsListeners()
 
     // Data overview refresh button
     safeAddEventListener('refreshDataOverview', 'click', () => {
@@ -336,7 +333,7 @@ class AdminInterface {
   }
 
   updateCategoryDropdowns() {
-    const selects = ['categoryFilter', 'productCategory', 'categoryFilterAllProducts'];
+    const selects = ['productCategory', 'categoryFilterAllProducts'];
     
     selects.forEach(selectId => {
       const select = document.getElementById(selectId);
@@ -350,7 +347,7 @@ class AdminInterface {
       const currentValue = select.value;
       
       // Keep "All categories" option for filters
-      if (selectId === 'categoryFilter' || selectId === 'categoryFilterAllProducts') {
+      if (selectId === 'categoryFilterAllProducts') {
         select.innerHTML = '<option value="">Alle categorieën</option>';
       } else {
         select.innerHTML = '<option value="">Selecteer categorie</option>';
