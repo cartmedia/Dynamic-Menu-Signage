@@ -31,6 +31,8 @@
 }
 
 .loading-text {
+  font-family: "futura-pt", sans-serif;
+  font-weight: 500;
   font-size: 4vh;
   color: #c19d6c;
   margin-bottom: 3vh;

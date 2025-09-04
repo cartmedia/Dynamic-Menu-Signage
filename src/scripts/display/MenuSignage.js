@@ -17,49 +17,49 @@ if (!debugMode) {
   // Keep console.error for critical issues
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+// Hide loading screen when menu data is ready
+function hideLoadingScreenWhenReady() {
+  let attempts = 0;
+  const maxAttempts = 25; // Max 5 seconds (25 * 200ms)
   
-  // Hide loading screen when menu data is ready
-  function hideLoadingScreenWhenReady() {
-    let attempts = 0;
-    const maxAttempts = 25; // Max 5 seconds (25 * 200ms)
+  // Check if menu data has been loaded and rendered
+  const checkDataReady = () => {
+    const menuItems = document.querySelectorAll('.MenuItem');
+    const hasMenuData = menuItems.length > 0;
     
-    // Check if menu data has been loaded and rendered
-    const checkDataReady = () => {
-      const menuItems = document.querySelectorAll('.MenuItem');
-      const hasMenuData = menuItems.length > 0;
-      
-      if (hasMenuData) {
-        console.log('Menu data rendered, hiding loading screen...');
-        hideLoadingScreen();
-      } else if (attempts < maxAttempts) {
-        // Data not ready yet, check again after a short delay
-        attempts++;
-        setTimeout(checkDataReady, 200);
-      } else {
-        // Safety timeout - hide loading screen even if no data loaded
-        console.warn('Loading screen timeout - hiding anyway after 5 seconds');
-        hideLoadingScreen();
-      }
-    };
-    
-    // Start checking after a minimal initial delay to ensure DOM is ready
-    setTimeout(checkDataReady, 300);
-  }
-  
-  // Actually hide the loading screen with animation
-  function hideLoadingScreen() {
-    const loadingScreen = document.getElementById('loadingScreen');
-    if (loadingScreen) {
-      loadingScreen.classList.add('fade-out');
-      setTimeout(() => {
-        if (loadingScreen && loadingScreen.parentNode) {
-          loadingScreen.remove();
-        }
-        console.log('🚀 Loading screen hidden - menu ready!');
-      }, 500);
+    if (hasMenuData) {
+      console.log('Menu data rendered, hiding loading screen...');
+      hideLoadingScreen();
+    } else if (attempts < maxAttempts) {
+      // Data not ready yet, check again after a short delay
+      attempts++;
+      setTimeout(checkDataReady, 200);
+    } else {
+      // Safety timeout - hide loading screen even if no data loaded
+      console.warn('Loading screen timeout - hiding anyway after 5 seconds');
+      hideLoadingScreen();
     }
+  };
+  
+  // Start checking after a minimal initial delay to ensure DOM is ready
+  setTimeout(checkDataReady, 300);
+}
+
+// Actually hide the loading screen with animation
+function hideLoadingScreen() {
+  const loadingScreen = document.getElementById('loadingScreen');
+  if (loadingScreen) {
+    loadingScreen.classList.add('fade-out');
+    setTimeout(() => {
+      if (loadingScreen && loadingScreen.parentNode) {
+        loadingScreen.remove();
+      }
+      console.log('🚀 Loading screen hidden - menu ready!');
+    }, 500);
   }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
 
   // Getting the span element
   var dayTitleSpan = document.getElementById("DayTitle");
