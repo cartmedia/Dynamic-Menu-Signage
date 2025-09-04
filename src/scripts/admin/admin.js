@@ -2054,8 +2054,8 @@ class AdminInterface {
           });
         }
         
-        return Promise.resolve();
-      }).filter(update => update); // Remove null promises
+        return null;
+      }).filter(update => update !== null); // Remove null values
       
       console.log(`Found ${affectedProducts} products to update`);
       console.log(`Executing ${updates.length} API calls for label removal`);
@@ -2067,7 +2067,11 @@ class AdminInterface {
       }
       
       const results = await Promise.all(updates);
-      console.log('API call results:', results.map((r, i) => ({ index: i, ok: r.ok, status: r.status })));
+      console.log('API call results:', results.map((r, i) => ({ 
+        index: i, 
+        ok: r && r.ok ? r.ok : 'N/A', 
+        status: r && r.status ? r.status : 'N/A' 
+      })));
       
       // Invalidate cache BEFORE reloading data
       console.log('Invalidating frontend cache...');
