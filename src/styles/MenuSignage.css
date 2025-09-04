@@ -10,14 +10,12 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  transition: opacity 0.3s ease-out; /* Faster transition */
+  transition: opacity 0.5s ease-out;
 }
 
 .loading-screen.fade-out {
   opacity: 0;
   pointer-events: none;
-  visibility: hidden; /* Extra insurance it doesn't block interactions */
-  z-index: -1; /* Move behind everything when faded */
 }
 
 .loading-content {
@@ -75,47 +73,46 @@ body {
   --logo-size: 36vh; /* Make logo size configurable */
   --body-height: calc(100vh - var(--header-height) - var(--footer-height));
   
-  /* Remove grid, use fixed positioning instead */
+  /* CSS Grid Layout for entire page */
+  display: grid;
+  grid-template-rows: var(--header-height) 1fr var(--footer-height);
+  grid-template-areas: 
+    "header"
+    "main"
+    "footer";
+  
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Prevent body scrolling */
+  overflow: clip !important;
 }
 
 /* PAGE GRID AREAS */
 .SignageHeader {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--header-height);
-  z-index: 100; /* High z-index to stay on top */
-  background: linear-gradient(rgba(16, 16, 16, 0.95), rgba(16, 16, 16, 0.85)); /* Slight background for readability */
+  grid-area: header;
+  z-index: 10;
 }
 
 .SignageBody {
-  position: fixed;
-  top: var(--header-height); /* Start below header */
-  bottom: var(--footer-height); /* End above footer */
-  left: 0;
-  right: 0;
+  grid-area: main;
   display: flex;
   justify-content: center;
-  align-items: center; /* Center vertically for better 1-column appearance */
-  padding: 2vh;
+  align-items: flex-start; /* Align to top to leave room for footer */
+  padding: 2vh; /* Add padding for breathing room */
   z-index: 5;
-  overflow-y: auto; /* Allow scrolling if content is too tall */
-  overflow-x: hidden;
+  position: relative; /* Ensure proper stacking context */
+  /* Add moderate margin-top for logo overlap */
+  margin-top: 12vh; /* Moderate margin for good logo/content separation */
+  /* Ensure we don't push footer off screen */
+  overflow: hidden;
 }
 
 .SignageFooter {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: var(--footer-height);
-  z-index: 100; /* High z-index to stay on top */
-  background: linear-gradient(rgba(16, 16, 16, 0.85), rgba(16, 16, 16, 0.95)); /* Slight background for readability */
+  grid-area: footer;
+  z-index: 10;
+  /* Ensure footer is always visible */
+  position: relative;
+  min-height: var(--footer-height);
 }
 
 /* HEADER LAYOUT - CSS Grid */
@@ -352,8 +349,9 @@ body {
   gap: 4vh; /* Good gap between columns */
   width: 94%; /* Leave more room for centering */
   max-width: none;
-  /* Fill available space between header and footer */
-  height: 100%; /* Use full height of SignageBody */
+  /* Leave room for footer - balanced approach */
+  max-height: calc(var(--body-height) - 8vh); /* More generous content space, minimal footer buffer */
+  height: auto; /* Let content determine height */
   
   /* Dynamic layout based on column setting */
   grid-template-columns: repeat(var(--columns, 2), 1fr);
@@ -367,10 +365,7 @@ body {
 /* When 1 column: single centered slot */
 .MenuContainer[data-columns="1"] {
   grid-template-columns: 1fr;
-  grid-template-rows: auto;
-  place-items: center; /* Center content in the available space */
-  max-width: 90%; /* Don't use full width for better appearance */
-  margin: 0 auto; /* Center the container */
+  grid-template-rows: 1fr;
 }
 
 /* When 2 columns: 1 row, 2 columns with equal heights */  
@@ -389,22 +384,23 @@ body {
 .CategorySlot[data-slot="0"] { display: none; }
 .CategorySlot[data-slot="3"] { display: none; }
 
-/* 1-column layout overrides - already centered above */
+/* 1-column layout overrides */
+.MenuContainer[data-columns="1"] {
+  /* Center the single column and adjust height */
+  justify-content: center;
+  align-items: center;
+}
 
 /* Show only slot 1 in 1-column mode, hide others */
 .MenuContainer[data-columns="1"] .CategorySlot[data-slot="0"] { display: none; }
 .MenuContainer[data-columns="1"] .CategorySlot[data-slot="1"] { 
   display: flex;
-  flex-direction: column;
   grid-area: 1 / 1;
-  /* Better sizing for single column with fixed layout */
-  width: 100%;
-  max-width: 900px; /* Reasonable max width for readability */
-  height: fit-content;
-  max-height: calc(100% - 4vh); /* Use available space in SignageBody */
-  overflow-y: auto; /* Allow scrolling if content is too tall */
-  overflow-x: hidden;
-  margin: auto; /* Center in the available space */
+  /* Content-fitted height for 1-column mode */
+  height: auto;
+  min-height: auto; /* Let content determine height */
+  max-height: 65vh; /* More generous height for single column */
+  align-self: start; /* No stretching in single column */
 }
 .MenuContainer[data-columns="1"] .CategorySlot[data-slot="2"] { display: none; }
 .MenuContainer[data-columns="1"] .CategorySlot[data-slot="3"] { display: none; }
@@ -420,38 +416,17 @@ body {
   /* Let content determine height with reasonable bounds */
   height: auto;
   min-height: auto; /* No artificial minimum */
-  max-height: 100%; /* Use full available height in container */
+  max-height: 55vh; /* More generous height for content */
   
-  /* Handle overflow */
-  overflow-y: auto; /* Allow scrolling when needed */
-  overflow-x: hidden;
+  /* Handle overflow with hidden (no scrolling) */
+  overflow: hidden;
   
   /* Consistent display properties */
   display: flex;
   flex-direction: column;
   
-  /* Ensure slots in same row have equal height in 2-column */
+  /* Ensure slots in same row have equal height */
   align-self: stretch; /* Fill the grid area */
-}
-
-/* Custom scrollbar for better appearance */
-.CategorySlot::-webkit-scrollbar {
-  width: 0.5vh;
-}
-
-.CategorySlot::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 0.25vh;
-}
-
-.CategorySlot::-webkit-scrollbar-thumb {
-  background: #c19d6c;
-  border-radius: 0.25vh;
-  opacity: 0.7;
-}
-
-.CategorySlot::-webkit-scrollbar-thumb:hover {
-  opacity: 1;
 }
 
 hr {
@@ -461,7 +436,7 @@ hr {
 
 @keyframes scrollTextContinuous {
   0% {
-    transform: translateX(0%);
+    transform: translateX(100%);
   }
   100% {
     transform: translateX(-50%);
@@ -479,8 +454,7 @@ hr {
 
 .ScrollingText span {
   display: inline-block;
-  padding-left: 100%; /* Start from right edge */
-  animation: scrollTextContinuous 30s linear infinite; /* default duration; JS will adjust */
+  animation: scrollText 30s linear infinite; /* default duration; JS will adjust */
   white-space: nowrap;
   will-change: transform;
   vertical-align: middle; /* Ensure proper vertical alignment */

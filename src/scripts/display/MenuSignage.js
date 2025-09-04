@@ -20,7 +20,7 @@ if (!debugMode) {
 // Hide loading screen when menu data is ready
 function hideLoadingScreenWhenReady() {
   let attempts = 0;
-  const maxAttempts = 10; // Max 1 second (10 * 100ms) - much faster!
+  const maxAttempts = 25; // Max 5 seconds (25 * 200ms)
   
   // Check if menu data has been loaded and rendered
   const checkDataReady = () => {
@@ -33,16 +33,16 @@ function hideLoadingScreenWhenReady() {
     } else if (attempts < maxAttempts) {
       // Data not ready yet, check again after a short delay
       attempts++;
-      setTimeout(checkDataReady, 100); // Check more frequently
+      setTimeout(checkDataReady, 200);
     } else {
       // Safety timeout - hide loading screen even if no data loaded
-      console.warn('Loading screen timeout - hiding anyway after 1 second');
+      console.warn('Loading screen timeout - hiding anyway after 5 seconds');
       hideLoadingScreen();
     }
   };
   
-  // Start checking immediately - no delay needed
-  checkDataReady();
+  // Start checking after a minimal initial delay to ensure DOM is ready
+  setTimeout(checkDataReady, 300);
 }
 
 // Actually hide the loading screen with animation
@@ -51,27 +51,15 @@ function hideLoadingScreen() {
   if (loadingScreen) {
     loadingScreen.classList.add('fade-out');
     setTimeout(() => {
-      // Force remove the element completely
-      const screen = document.getElementById('loadingScreen');
-      if (screen) {
-        screen.style.display = 'none';
-        screen.remove();
+      if (loadingScreen && loadingScreen.parentNode) {
+        loadingScreen.remove();
       }
       console.log('🚀 Loading screen hidden - menu ready!');
-    }, 300); // Faster fade out
+    }, 500);
   }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Also hide loading screen after DOM is ready as a fallback
-  setTimeout(() => {
-    const loadingScreen = document.getElementById('loadingScreen');
-    if (loadingScreen) {
-      console.warn('Loading screen still visible after DOM ready - forcing removal');
-      loadingScreen.style.display = 'none';
-      loadingScreen.remove();
-    }
-  }, 2000); // 2 second max wait
 
   // Getting the span element
   var dayTitleSpan = document.getElementById("DayTitle");
@@ -167,8 +155,7 @@ class DisplaySettings {
 
   applyLayoutHeights() {
     const headerHeight = parseInt(this.settings.header_height) || 15;
-    const footerEnabled = this.settings.footer_enabled !== false; // Default to true if not specified
-    const footerHeight = footerEnabled ? (parseFloat(this.settings.footer_height) || 7.8) : 0; // 0 if disabled
+    const footerHeight = parseFloat(this.settings.footer_height) || 7.8; // Match CSS default
     const logoSize = parseInt(this.settings.logo_size) || 36; // Match CSS default
     
     // Set CSS custom properties on body element
@@ -177,23 +164,7 @@ class DisplaySettings {
     document.body.style.setProperty('--logo-size', `${logoSize}vh`);
     document.body.style.setProperty('--body-height', `calc(100vh - ${headerHeight}vh - ${footerHeight}vh)`);
     
-    // Hide/show footer based on setting
-    const footerElement = document.querySelector('.SignageFooter');
-    if (footerElement) {
-      if (footerEnabled) {
-        footerElement.style.display = '';
-      } else {
-        footerElement.style.display = 'none';
-      }
-    }
-    
-    // Adjust body bottom to account for footer
-    const bodyElement = document.querySelector('.SignageBody');
-    if (bodyElement) {
-      bodyElement.style.bottom = `${footerHeight}vh`;
-    }
-    
-    console.log(`Applied header: ${headerHeight}vh, footer: ${footerEnabled ? footerHeight + 'vh' : 'disabled'}, logo: ${logoSize}vh`);
+    console.log(`Applied header: ${headerHeight}vh, footer: ${footerHeight}vh, logo: ${logoSize}vh`);
   }
 
   getColumnCount() {
@@ -301,12 +272,8 @@ document.addEventListener("DOMContentLoaded", function () {
       return await response.json();
     }
   };
-  
-  // Start loading products immediately for faster initial display
-  const productsPromise = loadProducts();
 
-  // Use the pre-loaded promise instead of starting a new load
-  productsPromise
+  loadProducts()
     .then((data) => {
       console.log("Initial data loaded:", data);
       const categories = Array.isArray(data.categories) ? data.categories : [];
@@ -615,14 +582,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     
     if (footerContinuous) {
-      // Voor echte continue scrolling: dupliceer de content meerdere keren voor seamless loop
-      // Add enough repetitions to ensure no gap
-      const repetitions = 3; // Repeat content 3 times for seamless scrolling
-      let repeatedContent = '';
-      for (let i = 0; i < repetitions; i++) {
-        repeatedContent += htmlContent + '&nbsp;&nbsp;&nbsp;&nbsp;'; // Small space between repetitions
-      }
-      scrollingTextSpan.innerHTML = repeatedContent;
+      // Voor echte continue scrolling: dupliceer de content met extra spacing
+      scrollingTextSpan.innerHTML = htmlContent + ' ' + htmlContent;
       scrollingTextSpan.style.animationName = 'scrollTextContinuous';
     } else {
       // Discrete mode: enkele content met natuurlijke pauze
@@ -640,9 +601,10 @@ document.addEventListener("DOMContentLoaded", function () {
     let totalDistance;
     
     if (footerContinuous && spanWidth > 0) {
-      // Continuous: scroll exactly 1/3 of content (since we repeat 3 times)
-      // This ensures seamless looping
-      totalDistance = spanWidth / 3;
+      // Continue: van 100% naar -50% = 150% van container breedte
+      // Maar we gebruiken halve span breedte omdat content gedupliceerd is
+      spanWidth = spanWidth / 2;
+      totalDistance = containerWidth + (spanWidth / 2); // 100% + 50% van de echte content
     } else {
       // Discrete: van 100% naar -100% = 200% van container breedte  
       totalDistance = spanWidth + (2 * containerWidth); // Volledige span + 200% container
