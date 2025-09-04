@@ -378,13 +378,40 @@ document.addEventListener("DOMContentLoaded", function () {
             renderCategory(SLOTS[0], currentCategory, slotItems);
           }
         } else {
-          // Two slot mode - STRICT 8-item limit per slot
-          const MAX_ITEMS_PER_SLOT = 8;
+          // Two slot mode - Use visibleCount for consistency with rotation logic
+          const MAX_ITEMS_PER_SLOT = Math.min(visibleCount, 8); // Respect computed visible count but cap at 8
           
           if (totalItems > MAX_ITEMS_PER_SLOT) {
-            // Split current category across 2 slots, max 8 items each
+            // Split current category across 2 slots based on pagination
+            const start = pagePartIndex * MAX_ITEMS_PER_SLOT;
+            const end = Math.min(totalItems, start + MAX_ITEMS_PER_SLOT * 2);
             
-            // Slot 1: First 8 items
+            // Slot 1: Current page items
+            const slot1El = document.querySelector(SLOTS[0]);
+            if (slot1El) {
+              slot1El.style.display = "block";
+              const slot1Items = items.slice(start, Math.min(end, start + MAX_ITEMS_PER_SLOT));
+              renderCategory(SLOTS[0], currentCategory, slot1Items);
+            }
+            
+            // Slot 2: Next page items (if available)
+            const slot2El = document.querySelector(SLOTS[1]);
+            if (slot2El && start + MAX_ITEMS_PER_SLOT < end) {
+              slot2El.style.display = "block";
+              const slot2Items = items.slice(start + MAX_ITEMS_PER_SLOT, end);
+              renderCategory(SLOTS[1], currentCategory, slot2Items);
+            } else if (slot2El) {
+              // If no more items in current category, show next category
+              const nextCategoryIndex = (categoryIndex + 1) % categories.length;
+              const nextCategory = categories[nextCategoryIndex];
+              if (nextCategory) {
+                slot2El.style.display = "block";
+                const nextItems = (nextCategory.items || []).slice(0, MAX_ITEMS_PER_SLOT);
+                renderCategory(SLOTS[1], nextCategory, nextItems);
+              }
+            }
+          } else {
+            // Show current category in slot 1, next category in slot 2
             const slot1El = document.querySelector(SLOTS[0]);
             if (slot1El) {
               slot1El.style.display = "block";
@@ -392,29 +419,13 @@ document.addEventListener("DOMContentLoaded", function () {
               renderCategory(SLOTS[0], currentCategory, slot1Items);
             }
             
-            // Slot 2: Next 8 items with same category title
-            const slot2El = document.querySelector(SLOTS[1]);
-            if (slot2El) {
-              slot2El.style.display = "block";
-              const slot2Items = items.slice(MAX_ITEMS_PER_SLOT, MAX_ITEMS_PER_SLOT * 2);
-              renderCategory(SLOTS[1], currentCategory, slot2Items);
-            }
-          } else {
-            // Show current category in slot 1 (max 8 items), next category in slot 2
-            const slot1El = document.querySelector(SLOTS[0]);
-            if (slot1El) {
-              slot1El.style.display = "block";
-              const slot1Items = items.slice(0, MAX_ITEMS_PER_SLOT); // Ensure max 8
-              renderCategory(SLOTS[0], currentCategory, slot1Items);
-            }
-            
-            // Show next category in slot 2 (max 8 items)
+            // Show next category in slot 2
             const nextCategoryIndex = (categoryIndex + 1) % categories.length;
             const nextCategory = categories[nextCategoryIndex];
             const slot2El = document.querySelector(SLOTS[1]);
             if (slot2El && nextCategory) {
               slot2El.style.display = "block";
-              const nextItems = (nextCategory.items || []).slice(0, MAX_ITEMS_PER_SLOT); // Ensure max 8
+              const nextItems = (nextCategory.items || []).slice(0, MAX_ITEMS_PER_SLOT);
               renderCategory(SLOTS[1], nextCategory, nextItems);
             }
           }
