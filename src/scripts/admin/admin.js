@@ -924,47 +924,100 @@ class AdminInterface {
    */
   initializeProductDragAndDrop() {
     const productItems = document.querySelectorAll('.product-item');
+    console.log(`🔄 Initializing drag and drop for ${productItems.length} products`);
     
-    productItems.forEach(item => {
-      item.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', JSON.stringify({
-          productId: e.target.dataset.productId,
-          categoryId: e.target.dataset.categoryId
-        }));
-        e.target.style.opacity = '0.5';
-      });
+    productItems.forEach((item, index) => {
+      // Make sure draggable attribute is set
+      item.setAttribute('draggable', 'true');
       
-      item.addEventListener('dragend', (e) => {
-        e.target.style.opacity = '1';
-      });
+      // Remove any existing listeners to prevent duplicates
+      item.removeEventListener('dragstart', this.productDragStart);
+      item.removeEventListener('dragend', this.productDragEnd);
+      item.removeEventListener('dragover', this.productDragOver);
+      item.removeEventListener('dragleave', this.productDragLeave);
+      item.removeEventListener('drop', this.productDrop);
       
-      item.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.currentTarget.classList.add('bg-blue-50', 'border-blue-300');
-      });
+      // Bind event handlers to maintain 'this' context
+      const boundDragStart = this.productDragStart.bind(this);
+      const boundDragEnd = this.productDragEnd.bind(this);
+      const boundDragOver = this.productDragOver.bind(this);
+      const boundDragLeave = this.productDragLeave.bind(this);
+      const boundDrop = this.productDrop.bind(this);
       
-      item.addEventListener('dragleave', (e) => {
-        e.currentTarget.classList.remove('bg-blue-50', 'border-blue-300');
-      });
+      item.addEventListener('dragstart', boundDragStart);
+      item.addEventListener('dragend', boundDragEnd);
+      item.addEventListener('dragover', boundDragOver);
+      item.addEventListener('dragleave', boundDragLeave);
+      item.addEventListener('drop', boundDrop);
       
-      item.addEventListener('drop', (e) => {
-        e.preventDefault();
-        e.currentTarget.classList.remove('bg-blue-50', 'border-blue-300');
-        
-        const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
-        const targetProductId = e.currentTarget.dataset.productId;
-        const targetCategoryId = e.currentTarget.dataset.categoryId;
-        
-        if (dragData.productId !== targetProductId) {
-          // Only allow reordering within the same category
-          if (dragData.categoryId === targetCategoryId) {
-            this.reorderProducts(dragData.productId, targetProductId);
-          } else {
-            this.showToast('Producten kunnen alleen binnen dezelfde categorie worden gesorteerd', 'error');
-          }
-        }
-      });
+      // Store bound functions for cleanup
+      item._boundDragStart = boundDragStart;
+      item._boundDragEnd = boundDragEnd;
+      item._boundDragOver = boundDragOver;
+      item._boundDragLeave = boundDragLeave;
+      item._boundDrop = boundDrop;
     });
+    
+    console.log('✅ Product drag and drop initialized successfully');
+  }
+
+  // Product drag event handlers
+  productDragStart(e) {
+    e.dataTransfer.setData('text/plain', JSON.stringify({
+      productId: e.target.dataset.productId,
+      categoryId: e.target.dataset.categoryId
+    }));
+    e.target.style.opacity = '0.5';
+    e.target.classList.add('dragging');
+    console.log(`🎯 Started dragging product ${e.target.dataset.productId}`);
+  }
+
+  productDragEnd(e) {
+    e.target.style.opacity = '1';
+    e.target.classList.remove('dragging');
+    // Clean up any remaining visual states
+    document.querySelectorAll('.product-item').forEach(item => {
+      item.classList.remove('bg-blue-50', 'dark:bg-blue-900', 'border-blue-300', 'dark:border-blue-600', 'drag-over');
+    });
+  }
+
+  productDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('bg-blue-50', 'dark:bg-blue-900', 'border-blue-300', 'dark:border-blue-600', 'drag-over');
+  }
+
+  productDragLeave(e) {
+    // Only remove classes if we're actually leaving the element (not entering a child)
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      e.currentTarget.classList.remove('bg-blue-50', 'dark:bg-blue-900', 'border-blue-300', 'dark:border-blue-600', 'drag-over');
+    }
+  }
+
+  productDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('bg-blue-50', 'dark:bg-blue-900', 'border-blue-300', 'dark:border-blue-600', 'drag-over');
+    
+    try {
+      const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+      const targetProductId = e.currentTarget.dataset.productId;
+      const targetCategoryId = e.currentTarget.dataset.categoryId;
+      
+      console.log(`🎯 Dropped product ${dragData.productId} onto ${targetProductId}`);
+      
+      if (dragData.productId !== targetProductId) {
+        // Only allow reordering within the same category
+        if (dragData.categoryId === targetCategoryId) {
+          console.log('✅ Same category - proceeding with reorder');
+          this.reorderProducts(dragData.productId, targetProductId);
+        } else {
+          console.log('❌ Different categories - not allowed');
+          this.showToast('Producten kunnen alleen binnen dezelfde categorie worden gesorteerd', 'error');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error handling product drop:', error);
+      this.showToast('Er is een fout opgetreden bij het verplaatsen', 'error');
+    }
   }
 
   /**
@@ -1060,42 +1113,60 @@ class AdminInterface {
    */
   async reorderProducts(draggedId, targetId) {
     try {
+      console.log(`🔄 Reordering products: ${draggedId} -> ${targetId}`);
+      
       // Find the products
       const draggedProduct = this.products.find(p => p.id == draggedId);
       const targetProduct = this.products.find(p => p.id == targetId);
       
-      if (!draggedProduct || !targetProduct) return;
+      if (!draggedProduct || !targetProduct) {
+        console.error('❌ Could not find products for reordering');
+        return;
+      }
+      
+      console.log(`📋 Swapping order: ${draggedProduct.name} (${draggedProduct.display_order}) <-> ${targetProduct.name} (${targetProduct.display_order})`);
       
       // Swap display orders
       const tempOrder = draggedProduct.display_order;
       draggedProduct.display_order = targetProduct.display_order;
       targetProduct.display_order = tempOrder;
       
+      // Create full product update objects with all fields including badges
+      const updateDraggedProduct = {
+        name: draggedProduct.name,
+        category_id: draggedProduct.category_id,
+        price: draggedProduct.price,
+        description: draggedProduct.description || '',
+        display_order: draggedProduct.display_order,
+        active: draggedProduct.active,
+        on_sale: draggedProduct.on_sale || false,
+        is_new: draggedProduct.is_new || false
+      };
+
+      const updateTargetProduct = {
+        name: targetProduct.name,
+        category_id: targetProduct.category_id,
+        price: targetProduct.price,
+        description: targetProduct.description || '',
+        display_order: targetProduct.display_order,
+        active: targetProduct.active,
+        on_sale: targetProduct.on_sale || false,
+        is_new: targetProduct.is_new || false
+      };
+      
       // Update both products in database
       await Promise.all([
         this.apiCall(`/.netlify/functions/admin-products?id=${draggedId}`, {
           method: 'PUT',
-          body: JSON.stringify({
-            name: draggedProduct.name,
-            category_id: draggedProduct.category_id,
-            price: draggedProduct.price,
-            description: draggedProduct.description,
-            display_order: draggedProduct.display_order,
-            active: draggedProduct.active
-          })
+          body: JSON.stringify(updateDraggedProduct)
         }),
         this.apiCall(`/.netlify/functions/admin-products?id=${targetId}`, {
           method: 'PUT',
-          body: JSON.stringify({
-            name: targetProduct.name,
-            category_id: targetProduct.category_id,
-            price: targetProduct.price,
-            description: targetProduct.description,
-            display_order: targetProduct.display_order,
-            active: targetProduct.active
-          })
+          body: JSON.stringify(updateTargetProduct)
         })
       ]);
+      
+      console.log('✅ Products reordered successfully');
       
       // Reload data and invalidate cache
       await this.loadData();
@@ -1103,7 +1174,7 @@ class AdminInterface {
       this.showToast('Product volgorde bijgewerkt', 'success');
       
     } catch (error) {
-      console.error('Error reordering products:', error);
+      console.error('❌ Error reordering products:', error);
       this.showToast('Fout bij wijzigen product volgorde: ' + error.message, 'error');
       // Reload to restore original order
       await this.loadData();
