@@ -1617,6 +1617,9 @@ class AdminInterface {
     // Bulk Remove Labels Modal Event Listeners
     this.setupBulkRemoveModalListeners();
 
+    // Bulk Actions Modal Event Listeners
+    this.setupBulkActionsModalListeners();
+
     // Select all checkbox
     const selectAllProducts = document.getElementById('selectAllProducts');
     if (selectAllProducts) {
@@ -1816,13 +1819,17 @@ class AdminInterface {
   }
 
   /**
-   * Bulk activate all products
+   * Show bulk activate modal
    */
-  async bulkActivateProducts() {
-    if (!confirm(`Weet je zeker dat je alle ${this.products.length} producten wilt activeren?`)) {
-      return;
-    }
+  bulkActivateProducts() {
+    document.getElementById('bulkActivateCount').textContent = this.products.length;
+    document.getElementById('bulkActivateModal').classList.remove('hidden');
+  }
 
+  /**
+   * Execute bulk activate all products
+   */
+  async executeBulkActivateProducts() {
     try {
       const updates = this.products.map(product => 
         this.apiCall(`/.netlify/functions/admin-products?id=${product.id}`, {
@@ -1837,6 +1844,7 @@ class AdminInterface {
       await Promise.all(updates);
       await this.loadData();
       this.showToast('Alle producten geactiveerd', 'success');
+      this.closeBulkActivateModal();
     } catch (error) {
       console.error('Error bulk activating products:', error);
       this.showToast('Fout bij bulk activeren', 'error');
@@ -1844,13 +1852,24 @@ class AdminInterface {
   }
 
   /**
-   * Bulk deactivate all products
+   * Close bulk activate modal
+   */
+  closeBulkActivateModal() {
+    document.getElementById('bulkActivateModal').classList.add('hidden');
+  }
+
+  /**
+   * Show bulk deactivate modal
    */
   async bulkDeactivateProducts() {
-    if (!confirm(`Weet je zeker dat je alle ${this.products.length} producten wilt deactiveren?`)) {
-      return;
-    }
+    document.getElementById('bulkDeactivateCount').textContent = this.products.length;
+    document.getElementById('bulkDeactivateModal').classList.remove('hidden');
+  }
 
+  /**
+   * Execute bulk deactivate all products
+   */
+  async executeBulkDeactivateProducts() {
     try {
       const updates = this.products.map(product => 
         this.apiCall(`/.netlify/functions/admin-products?id=${product.id}`, {
@@ -1865,10 +1884,18 @@ class AdminInterface {
       await Promise.all(updates);
       await this.loadData();
       this.showToast('Alle producten gedeactiveerd', 'success');
+      this.closeBulkDeactivateModal();
     } catch (error) {
       console.error('Error bulk deactivating products:', error);
       this.showToast('Fout bij bulk deactiveren', 'error');
     }
+  }
+
+  /**
+   * Close bulk deactivate modal
+   */
+  closeBulkDeactivateModal() {
+    document.getElementById('bulkDeactivateModal').classList.add('hidden');
   }
 
   /**
@@ -2094,6 +2121,62 @@ class AdminInterface {
       modal.addEventListener('click', (e) => {
         if (e.target.id === 'bulkRemoveLabelsModal') {
           this.closeBulkRemoveLabelsModal();
+        }
+      });
+    }
+  }
+
+  /**
+   * Setup event listeners for bulk actions modals
+   */
+  setupBulkActionsModalListeners() {
+    // Bulk Activate Modal
+    const bulkActivateConfirm = document.getElementById('bulkActivateConfirm');
+    const bulkActivateCancel = document.getElementById('bulkActivateCancel');
+    
+    if (bulkActivateConfirm) {
+      bulkActivateConfirm.addEventListener('click', () => {
+        this.executeBulkActivateProducts();
+      });
+    }
+    
+    if (bulkActivateCancel) {
+      bulkActivateCancel.addEventListener('click', () => {
+        this.closeBulkActivateModal();
+      });
+    }
+    
+    // Bulk Deactivate Modal
+    const bulkDeactivateConfirm = document.getElementById('bulkDeactivateConfirm');
+    const bulkDeactivateCancel = document.getElementById('bulkDeactivateCancel');
+    
+    if (bulkDeactivateConfirm) {
+      bulkDeactivateConfirm.addEventListener('click', () => {
+        this.executeBulkDeactivateProducts();
+      });
+    }
+    
+    if (bulkDeactivateCancel) {
+      bulkDeactivateCancel.addEventListener('click', () => {
+        this.closeBulkDeactivateModal();
+      });
+    }
+    
+    // Close modals on background click
+    const bulkActivateModal = document.getElementById('bulkActivateModal');
+    if (bulkActivateModal) {
+      bulkActivateModal.addEventListener('click', (e) => {
+        if (e.target.id === 'bulkActivateModal') {
+          this.closeBulkActivateModal();
+        }
+      });
+    }
+    
+    const bulkDeactivateModal = document.getElementById('bulkDeactivateModal');
+    if (bulkDeactivateModal) {
+      bulkDeactivateModal.addEventListener('click', (e) => {
+        if (e.target.id === 'bulkDeactivateModal') {
+          this.closeBulkDeactivateModal();
         }
       });
     }
