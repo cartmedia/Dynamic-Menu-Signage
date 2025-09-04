@@ -22,13 +22,17 @@ function hideLoadingScreenWhenReady() {
   let attempts = 0;
   const maxAttempts = 25; // Max 5 seconds (25 * 200ms)
   
+  console.log('🔄 hideLoadingScreenWhenReady started');
+  
   // Check if menu data has been loaded and rendered
   const checkDataReady = () => {
     const menuItems = document.querySelectorAll('.MenuItem');
     const hasMenuData = menuItems.length > 0;
     
+    console.log(`📊 Check ${attempts + 1}/${maxAttempts}: Found ${menuItems.length} menu items`);
+    
     if (hasMenuData) {
-      console.log('Menu data rendered, hiding loading screen...');
+      console.log('✅ Menu data rendered, hiding loading screen...');
       hideLoadingScreen();
     } else if (attempts < maxAttempts) {
       // Data not ready yet, check again after a short delay
@@ -36,26 +40,41 @@ function hideLoadingScreenWhenReady() {
       setTimeout(checkDataReady, 200);
     } else {
       // Safety timeout - hide loading screen even if no data loaded
-      console.warn('Loading screen timeout - hiding anyway after 5 seconds');
+      console.warn('⏰ Loading screen timeout - hiding anyway after 5 seconds');
       hideLoadingScreen();
     }
   };
   
   // Start checking after a minimal initial delay to ensure DOM is ready
   setTimeout(checkDataReady, 300);
+  
+  // Additional safety net - force hide after 8 seconds no matter what
+  setTimeout(() => {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen && !loadingScreen.classList.contains('fade-out')) {
+      console.warn('🚨 EMERGENCY: Force hiding loading screen after 8 seconds');
+      hideLoadingScreen();
+    }
+  }, 8000);
 }
 
 // Actually hide the loading screen with animation
 function hideLoadingScreen() {
+  console.log('🎯 hideLoadingScreen called');
   const loadingScreen = document.getElementById('loadingScreen');
+  console.log('Loading screen element found:', loadingScreen ? 'YES' : 'NO');
   if (loadingScreen) {
+    console.log('Adding fade-out class...');
     loadingScreen.classList.add('fade-out');
     setTimeout(() => {
       if (loadingScreen && loadingScreen.parentNode) {
+        console.log('Removing loading screen element...');
         loadingScreen.remove();
       }
       console.log('🚀 Loading screen hidden - menu ready!');
     }, 500);
+  } else {
+    console.warn('⚠️ Loading screen element not found - cannot hide');
   }
 }
 
