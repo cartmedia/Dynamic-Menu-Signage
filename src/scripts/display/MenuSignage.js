@@ -96,8 +96,8 @@ document.addEventListener("DOMContentLoaded", function () {
   var currentDate = new Date();
   var currentDayName = days[currentDate.getDay()];
 
-  // Setting the text (Team Pinas branding)
-  dayTitleSpan.textContent = "Team Pinas — " + currentDayName + " Menu";
+  // Setting the text (CounterCast branding)
+  dayTitleSpan.textContent = "CounterCast — " + currentDayName + " Menu";
 
   // Live clock (Dutch locale)
   const clockEl = document.getElementById("Clock");
